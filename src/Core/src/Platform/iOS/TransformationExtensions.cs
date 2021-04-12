@@ -15,47 +15,11 @@ namespace Microsoft.Maui
 		static Rectangle LastBounds;
 		static int UpdateCount;
 
-		public static void UpdateTranslationX(this UIView nativeView, IView view)
+		public static void UpdateTransformation(this UIView nativeView, IView? view)
 		{
-			nativeView.UpdateTransformation(view);
 		}
 
-		public static void UpdateTranslationY(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateScale(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateRotation(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateRotationX(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateRotationY(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateAnchorX(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		public static void UpdateAnchorY(this UIView nativeView, IView view)
-		{
-			nativeView.UpdateTransformation(view);
-		}
-
-		internal static void UpdateTransformation(this UIView nativeView, IView? view)
+		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool _isInteractive, CGPoint? originalAnchor)
 		{
 			if (Layer == null)
 			{

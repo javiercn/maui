@@ -84,8 +84,13 @@ namespace Microsoft.Maui.Handlers
 		// TODO ezhart This should maybe be called NativeArrange or something
 		public abstract void SetFrame(Rectangle frame);
 
-		private protected void ConnectHandler(NativeView? nativeView)
+		private protected void ConnectHandler(NativeView? nativeView) { }
+
+		partial void SettingDefault(NativeView? nativeView);
+
+		private protected void SetupDefaults(NativeView? nativeView)
 		{
+			SettingDefault(nativeView);
 		}
 
 		partial void DisconnectingHandler(NativeView? nativeView);
@@ -126,46 +131,6 @@ namespace Microsoft.Maui.Handlers
 		{
 			MappingSemantics(handler, view);
 			((NativeView?)handler.NativeView)?.UpdateSemantics(view);
-		}
-
-		public static void MapTranslationX(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateTranslationX(view);
-		}
-
-		public static void MapTranslationY(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateTranslationY(view);
-		}
-
-		public static void MapScale(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateScale(view);
-		}
-
-		public static void MapRotation(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateRotation(view);
-		}
-
-		public static void MapRotationX(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateRotationX(view);
-		}
-
-		public static void MapRotationY(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateRotationY(view);
-		}
-
-		public static void MapAnchorX(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateAnchorX(view);
-		}
-
-		public static void MapAnchorY(IViewHandler handler, IView view)
-		{
-			((NativeView?)handler.NativeView)?.UpdateAnchorY(view);
 		}
 	}
 }

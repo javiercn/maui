@@ -113,7 +113,10 @@ namespace Microsoft.Maui.Handlers
 		public override void UpdateValue(string property)
 			=> _mapper?.UpdateProperty(this, VirtualView, property);
 
-		protected virtual void SetupDefaults(TNativeView nativeView) { }
+		protected virtual void SetupDefaults(TNativeView nativeView)
+		{
+			base.SetupDefaults(nativeView);
+		}
 	}
 
 	public abstract partial class ViewHandler<TVirtualView> : ViewHandler
