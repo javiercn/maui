@@ -153,6 +153,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.MacOS
 			SetElement(_element, e.NewElement);
 		}
 
+		[PortHandler("Partially ported")]
 		void OnUpdateNativeControl(CALayer caLayer)
 		{
 			var view = Renderer.Element;

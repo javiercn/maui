@@ -55,7 +55,7 @@ namespace Microsoft.Maui
 			nativeView.UpdateTransformation(view);
 		}
 
-		internal static void UpdateTransformation(this UIView nativeView, IView view)
+		internal static void UpdateTransformation(this UIView nativeView, IView? view)
 		{
 			if (Layer == null)
 			{
@@ -82,8 +82,6 @@ namespace Microsoft.Maui
 
 			var boundsChanged = LastBounds != view.Frame;
 
-			var thread = !boundsChanged && !Layer.Frame.IsEmpty;
-
 			var anchorX = (float)view.AnchorX;
 			var anchorY = (float)view.AnchorY;
 			var translationX = (float)view.TranslationX;
@@ -94,10 +92,14 @@ namespace Microsoft.Maui
 			var scale = (float)view.Scale;
 			var scaleX = (float)view.ScaleX * scale;
 			var scaleY = (float)view.ScaleY * scale;
-			var width = (float)view.Width;
-			var height = (float)view.Height;
+			var width = (float)view.Frame.Width;
+			var height = (float)view.Frame.Height;
 			var x = (float)view.Frame.X;
 			var y = (float)view.Frame.Y;
+
+			// TODO: Port Opacity and IsVisible properties.
+			var opacity = 1.0d;
+			var isVisible = true;
 
 			var updateTarget = Interlocked.Increment(ref UpdateCount);
 
@@ -106,20 +108,18 @@ namespace Microsoft.Maui
 				if (updateTarget != UpdateCount)
 					return;
 
-				var visualElement = view;
-
 				var parent = view.Parent;
 
 				var shouldRelayoutSublayers = false;
 
-				if (Layer != null && Layer.Hidden)
+				if (isVisible && Layer != null && Layer.Hidden)
 				{
 					Layer.Hidden = false;
 					if (!Layer.Frame.IsEmpty)
 						shouldRelayoutSublayers = true;
 				}
 
-				if (Layer != null && !Layer.Hidden)
+				if (!isVisible && Layer != null && !Layer.Hidden)
 				{
 					Layer.Hidden = true;
 					shouldRelayoutSublayers = true;
@@ -128,7 +128,7 @@ namespace Microsoft.Maui
 				// Ripe for optimization
 				var transform = CATransform3D.Identity;
 
-				bool shouldUpdate = width > 0 && height > 0 && parent != null && boundsChanged;
+				bool shouldUpdate = width > 0 && height > 0 && parent != null; // && boundsChanged;
 
 				// Dont ever attempt to actually change the layout of a Page unless it is a ContentPage
 				// iOS is a really big fan of you not actually modifying the View's of the UIViewControllers
@@ -149,24 +149,22 @@ namespace Microsoft.Maui
 						Layer.LayoutSublayers();
 				}
 				else if (width <= 0 || height <= 0)
-				{
-					if (Layer != null)
-						Layer.Hidden = true;
-
 					return;
-				}
-
+				
 				if (Layer != null)
+				{
 					Layer.AnchorPoint = new PointF(anchorX, anchorY);
+					Layer.Opacity = (float)opacity;
+				}
 
 				const double epsilon = 0.001;
 
 				// Position is relative to anchor point
 				if (Math.Abs(anchorX - .5) > epsilon)
 					transform = transform.Translate((anchorX - .5f) * width, 0, 0);
+
 				if (Math.Abs(anchorY - .5) > epsilon)
 					transform = transform.Translate(0, (anchorY - .5f) * height, 0);
-
 
 				if (Math.Abs(translationX) > epsilon || Math.Abs(translationY) > epsilon)
 					transform = transform.Translate(translationX, translationY, 0);
@@ -199,6 +197,8 @@ namespace Microsoft.Maui
 						Layer.Transform = transform;
 				});
 			}
+
+			// TODO: Use the thread var when porting the Device class.
 
 			Update();
 

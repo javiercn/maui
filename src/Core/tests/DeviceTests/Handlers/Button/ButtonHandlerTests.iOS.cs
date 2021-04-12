@@ -5,7 +5,6 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using UIKit;
 using Xunit;
-using CoreAnimation;
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -101,26 +100,7 @@ namespace Microsoft.Maui.DeviceTests
 
 			Assert.Equal(UIAccessibilityTrait.Button, trait);
 		}
-
-		[Fact(DisplayName = "Transformation Initialize Correctly")]
-		public async Task TransformationInitializeCorrectly()
-		{
-			var button = new ButtonStub()
-			{
-				Text = "Transformation",
-				TranslationX = 10,
-				Scale = 1.2,
-				Rotation = 90
-			};
-
-			var handler = await CreateHandlerAsync(button);
-			var nativeButton = handler.NativeView;
-
-			var transform = nativeButton.Layer.Transform;
-
-			Assert.NotEqual(CATransform3D.Identity, transform);
-		}
-
+				
 		UIButton GetNativeButton(ButtonHandler buttonHandler) =>
 			buttonHandler.NativeView;
 

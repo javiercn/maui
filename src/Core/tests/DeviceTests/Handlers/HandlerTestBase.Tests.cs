@@ -1,6 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using Microsoft.Maui.DeviceTests.Stubs;
 using Xunit;
 
 namespace Microsoft.Maui.DeviceTests
@@ -11,8 +9,10 @@ namespace Microsoft.Maui.DeviceTests
 		[InlineData()]
 		public async Task SetAutomationId()
 		{
-			var view = new TStub();
-			view.AutomationId = "TestId";
+			var view = new TStub
+			{
+				AutomationId = "TestId"
+			};
 			var id = await GetValueAsync((IView)view, handler => GetAutomationId(handler));
 			Assert.Equal(view.AutomationId, id);
 		}
@@ -55,9 +55,11 @@ namespace Microsoft.Maui.DeviceTests
 		[InlineData()]
 		public async Task NullSemanticsClass()
 		{
-			var view = new TStub();
-			view.Semantics = null;
-			view.AutomationId = "CreationFailed";
+			var view = new TStub
+			{
+				Semantics = null,
+				AutomationId = "CreationFailed"
+			};
 			var id = await GetValueAsync((IView)view, handler => GetAutomationId(handler));
 			Assert.Equal(view.AutomationId, id);
 		}

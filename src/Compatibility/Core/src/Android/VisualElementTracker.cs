@@ -400,6 +400,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			Performance.Stop(reference);
 		}
 
+		[PortHandler]
 		void UpdateRotation()
 		{
 			VisualElement view = _renderer.Element;
@@ -408,6 +409,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			aview.Rotation = (float)view.Rotation;
 		}
 
+		[PortHandler]
 		void UpdateRotationX()
 		{
 			VisualElement view = _renderer.Element;
@@ -416,6 +418,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			aview.RotationX = (float)view.RotationX;
 		}
 
+		[PortHandler]
 		void UpdateRotationY()
 		{
 			VisualElement view = _renderer.Element;
@@ -424,6 +427,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			aview.RotationY = (float)view.RotationY;
 		}
 
+		[PortHandler]
 		void UpdateScale()
 		{
 			VisualElement view = _renderer.Element;
@@ -433,6 +437,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			aview.ScaleY = (float)view.Scale * (float)view.ScaleY;
 		}
 
+		[PortHandler]
 		void UpdateTranslationX()
 		{
 			VisualElement view = _renderer.Element;
@@ -441,6 +446,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			aview.TranslationX = _context.ToPixels(view.TranslationX);
 		}
 
+		[PortHandler]
 		void UpdateTranslationY()
 		{
 			VisualElement view = _renderer.Element;

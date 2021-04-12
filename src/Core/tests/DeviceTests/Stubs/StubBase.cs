@@ -40,7 +40,7 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 
 		public double TranslationY { get; set; }
 
-		public double Scale { get; set; }
+		public double Scale { get; set; } = 1.0d;
 
 		public double ScaleX { get; set; }
 
