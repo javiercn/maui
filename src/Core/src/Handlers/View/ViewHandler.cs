@@ -24,6 +24,16 @@ namespace Microsoft.Maui.Handlers
 			[nameof(IView.Frame)] = MapFrame,
 			[nameof(IView.IsEnabled)] = MapIsEnabled,
 			[nameof(IView.Semantics)] = MapSemantics,
+			[nameof(IView.TranslationX)] = MapTranslationX,
+			[nameof(IView.TranslationY)] = MapTranslationY,
+			[nameof(IView.Scale)] = MapScale,
+			[nameof(IView.ScaleX)] = MapScale,
+			[nameof(IView.ScaleY)] = MapScale,
+			[nameof(IView.Rotation)] = MapRotation,
+			[nameof(IView.RotationX)] = MapRotationX,
+			[nameof(IView.RotationY)] = MapRotationY,
+			[nameof(IView.AnchorX)] = MapAnchorX,
+			[nameof(IView.AnchorY)] = MapAnchorY
 		};
 
 		internal ViewHandler()
@@ -116,6 +126,46 @@ namespace Microsoft.Maui.Handlers
 		{
 			MappingSemantics(handler, view);
 			((NativeView?)handler.NativeView)?.UpdateSemantics(view);
+		}
+
+		public static void MapTranslationX(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateTranslationX(view);
+		}
+
+		public static void MapTranslationY(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateTranslationY(view);
+		}
+
+		public static void MapScale(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateScale(view);
+		}
+
+		public static void MapRotation(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateRotation(view);
+		}
+
+		public static void MapRotationX(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateRotationX(view);
+		}
+
+		public static void MapRotationY(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateRotationY(view);
+		}
+
+		public static void MapAnchorX(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateAnchorX(view);
+		}
+
+		public static void MapAnchorY(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateAnchorY(view);
 		}
 	}
 }

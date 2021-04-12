@@ -5,6 +5,7 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using UIKit;
 using Xunit;
+using CoreAnimation;
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -70,7 +71,7 @@ namespace Microsoft.Maui.DeviceTests
 			};
 
 			var handler = await CreateHandlerAsync(button);
-			var uiButton = (UIButton)handler.NativeView;
+			var uiButton = handler.NativeView;
 
 			var insets = await InvokeOnMainThreadAsync(() => { return uiButton.ContentEdgeInsets; });
 
@@ -79,8 +80,6 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(15, insets.Right);
 			Assert.Equal(20, insets.Bottom);
 		}
-
-
 
 		[Fact(DisplayName = "Default Accessibility Traits Don't Change")]
 		[InlineData()]
@@ -103,9 +102,27 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(UIAccessibilityTrait.Button, trait);
 		}
 
+		[Fact(DisplayName = "Transformation Initialize Correctly")]
+		public async Task TransformationInitializeCorrectly()
+		{
+			var button = new ButtonStub()
+			{
+				Text = "Transformation",
+				TranslationX = 10,
+				Scale = 1.2,
+				Rotation = 90
+			};
+
+			var handler = await CreateHandlerAsync(button);
+			var nativeButton = handler.NativeView;
+
+			var transform = nativeButton.Layer.Transform;
+
+			Assert.NotEqual(CATransform3D.Identity, transform);
+		}
 
 		UIButton GetNativeButton(ButtonHandler buttonHandler) =>
-			(UIButton)buttonHandler.NativeView;
+			buttonHandler.NativeView;
 
 		string GetNativeText(ButtonHandler buttonHandler) =>
 			GetNativeButton(buttonHandler).CurrentTitle;
