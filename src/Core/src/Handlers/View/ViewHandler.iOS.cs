@@ -19,13 +19,12 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapTranslationX(IViewHandler handler, IView view)
 		{
-			var viewHandler = handler as ViewHandler;
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view, viewHandler?._layer, viewHandler?._isInteractive ?? false, viewHandler?._originalAnchor);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapTranslationY(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapScale(IViewHandler handler, IView view)
@@ -35,27 +34,39 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapRotation(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapRotationX(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapRotationY(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapAnchorX(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
 		}
 
 		public static void MapAnchorY(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view);
+			MapTransformation(handler, view);
+		}
+
+		public static void MapTransformation(IViewHandler handler, IView view)
+		{
+			if (handler is not ViewHandler viewHandler)
+				return;
+
+			CALayer? layer = viewHandler._layer;
+			bool isInteractive = viewHandler._isInteractive;
+			CGPoint? originalAnchor = viewHandler._originalAnchor;
+
+			((NativeView?)handler.NativeView)?.UpdateTransformation(view, layer, isInteractive, originalAnchor);
 		}
 	}
 }

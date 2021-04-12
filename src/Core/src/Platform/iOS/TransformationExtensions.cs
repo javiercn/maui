@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Threading;
 using CoreAnimation;
 using CoreGraphics;
 using UIKit;
@@ -9,25 +8,19 @@ namespace Microsoft.Maui
 {
 	public static class TransformationExtensions
 	{
-		static CALayer? Layer;
-		static bool IsInteractive;
-		static CGPoint OriginalAnchor;
 		static Rectangle LastBounds;
-		static int UpdateCount;
 
 		public static void UpdateTransformation(this UIView nativeView, IView? view)
 		{
+			CALayer? layer = nativeView.Layer;
+			bool isInteractive = nativeView.UserInteractionEnabled;
+			CGPoint? originalAnchor = layer?.AnchorPoint;
+
+			nativeView.UpdateTransformation(view, layer, isInteractive, originalAnchor);
 		}
 
-		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool _isInteractive, CGPoint? originalAnchor)
+		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool isInteractive, CGPoint? originalAnchor)
 		{
-			if (Layer == null)
-			{
-				Layer = nativeView.Layer;
-				IsInteractive = nativeView.UserInteractionEnabled;
-				OriginalAnchor = Layer.AnchorPoint;
-			}
-
 			if (view == null)
 				return;
 
@@ -38,10 +31,10 @@ namespace Microsoft.Maui
 			else
 				shouldInteract = view.IsEnabled;
 
-			if (IsInteractive != shouldInteract)
+			if (isInteractive != shouldInteract)
 			{
 				nativeView.UserInteractionEnabled = shouldInteract;
-				IsInteractive = shouldInteract;
+				isInteractive = shouldInteract;
 			}
 
 			var boundsChanged = LastBounds != view.Frame;
@@ -65,34 +58,29 @@ namespace Microsoft.Maui
 			var opacity = 1.0d;
 			var isVisible = true;
 
-			var updateTarget = Interlocked.Increment(ref UpdateCount);
-
 			void Update()
 			{
-				if (updateTarget != UpdateCount)
-					return;
-
 				var parent = view.Parent;
 
 				var shouldRelayoutSublayers = false;
 
-				if (isVisible && Layer != null && Layer.Hidden)
+				if (isVisible && layer != null && layer.Hidden)
 				{
-					Layer.Hidden = false;
-					if (!Layer.Frame.IsEmpty)
+					layer.Hidden = false;
+					if (!layer.Frame.IsEmpty)
 						shouldRelayoutSublayers = true;
 				}
 
-				if (!isVisible && Layer != null && !Layer.Hidden)
+				if (!isVisible && layer != null && !layer.Hidden)
 				{
-					Layer.Hidden = true;
+					layer.Hidden = true;
 					shouldRelayoutSublayers = true;
 				}
 
 				// Ripe for optimization
 				var transform = CATransform3D.Identity;
 
-				bool shouldUpdate = width > 0 && height > 0 && parent != null; // && boundsChanged;
+				bool shouldUpdate = width > 0 && height > 0 && parent != null;
 
 				// Dont ever attempt to actually change the layout of a Page unless it is a ContentPage
 				// iOS is a really big fan of you not actually modifying the View's of the UIViewControllers
@@ -101,24 +89,24 @@ namespace Microsoft.Maui
 					var target = new RectangleF(x, y, width, height);
 
 					// Must reset transform prior to setting frame...
-					if (Layer != null && Layer.AnchorPoint != OriginalAnchor)
-						Layer.AnchorPoint = OriginalAnchor;
+					if (layer != null && originalAnchor != null && layer.AnchorPoint != originalAnchor)
+						layer.AnchorPoint = originalAnchor.Value;
 
-					if (Layer != null)
-						Layer.Transform = transform;
+					if (layer != null)
+						layer.Transform = transform;
 
 					nativeView.Frame = target;
 
-					if (Layer != null && shouldRelayoutSublayers)
-						Layer.LayoutSublayers();
+					if (layer != null && shouldRelayoutSublayers)
+						layer.LayoutSublayers();
 				}
 				else if (width <= 0 || height <= 0)
 					return;
 				
-				if (Layer != null)
+				if (layer != null)
 				{
-					Layer.AnchorPoint = new PointF(anchorX, anchorY);
-					Layer.Opacity = (float)opacity;
+					layer.AnchorPoint = new PointF(anchorX, anchorY);
+					layer.Opacity = (float)opacity;
 				}
 
 				const double epsilon = 0.001;
@@ -150,23 +138,21 @@ namespace Microsoft.Maui
 
 				if (Foundation.NSThread.IsMain)
 				{
-					if (Layer != null)
-						Layer.Transform = transform;
+					if (layer != null)
+						layer.Transform = transform;
 					return;
 				}
 
 				CoreFoundation.DispatchQueue.MainQueue.DispatchAsync(() =>
 				{
-					if (Layer != null)
-						Layer.Transform = transform;
+					if (layer != null)
+						layer.Transform = transform;
 				});
 			}
 
 			// TODO: Use the thread var when porting the Device class.
 
 			Update();
-
-			LastBounds = view.Frame;
 		}
 	}
 }
