@@ -9,12 +9,14 @@ namespace Microsoft.Maui.Handlers
 		CALayer? _layer;
 		bool _isInteractive;
 		CGPoint? _originalAnchor;
+		Rectangle? _lastBounds;
 
 		partial void SettingDefault(NativeView? nativeView)
 		{
 			_layer = nativeView?.Layer;
 			_isInteractive = nativeView?.UserInteractionEnabled ?? false;
 			_originalAnchor = _layer?.AnchorPoint;
+			_lastBounds = Rectangle.Zero;
 		}
 
 		public static void MapTranslationX(IViewHandler handler, IView view)
@@ -65,8 +67,9 @@ namespace Microsoft.Maui.Handlers
 			CALayer? layer = viewHandler._layer;
 			bool isInteractive = viewHandler._isInteractive;
 			CGPoint? originalAnchor = viewHandler._originalAnchor;
+			Rectangle? lastBounds = viewHandler._lastBounds;
 
-			((NativeView?)handler.NativeView)?.UpdateTransformation(view, layer, isInteractive, originalAnchor);
+			((NativeView?)handler.NativeView)?.UpdateTransformation(view, layer, isInteractive, originalAnchor, lastBounds);
 		}
 	}
 }

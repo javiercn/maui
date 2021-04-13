@@ -8,18 +8,17 @@ namespace Microsoft.Maui
 {
 	public static class TransformationExtensions
 	{
-		static Rectangle LastBounds;
-
 		public static void UpdateTransformation(this UIView nativeView, IView? view)
 		{
 			CALayer? layer = nativeView.Layer;
 			bool isInteractive = nativeView.UserInteractionEnabled;
 			CGPoint? originalAnchor = layer?.AnchorPoint;
+			Rectangle? lastBounds = view?.Frame;
 
-			nativeView.UpdateTransformation(view, layer, isInteractive, originalAnchor);
+			nativeView.UpdateTransformation(view, layer, isInteractive, originalAnchor, lastBounds);
 		}
 
-		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool isInteractive, CGPoint? originalAnchor)
+		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool isInteractive, CGPoint? originalAnchor, Rectangle? lastBounds)
 		{
 			if (view == null)
 				return;
@@ -37,7 +36,7 @@ namespace Microsoft.Maui
 				isInteractive = shouldInteract;
 			}
 
-			var boundsChanged = LastBounds != view.Frame;
+			var boundsChanged = lastBounds != view.Frame;
 
 			var anchorX = (float)view.AnchorX;
 			var anchorY = (float)view.AnchorY;
@@ -153,6 +152,8 @@ namespace Microsoft.Maui
 			// TODO: Use the thread var when porting the Device class.
 
 			Update();
+
+			lastBounds = view.Frame;
 		}
 	}
 }
