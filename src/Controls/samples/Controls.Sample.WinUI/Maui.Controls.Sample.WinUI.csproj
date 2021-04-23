@@ -1,4 +1,5 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
@@ -7,6 +8,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;arm64</Platforms>
     <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <StaticWebAssetsEnabled>true</StaticWebAssetsEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ProjectReunion" />
@@ -21,4 +23,21 @@
     <ProjectReference Include="..\..\src\Core\Controls.Core-net6.csproj" />
     <ProjectReference Include="..\Controls.Sample\Maui.Controls.Sample-net6.csproj" />
   </ItemGroup>
+
+  <Target Name="_StaticWebAssetsComputeFilesToBuild" AfterTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="ResolveStaticWebAssetsInputs">
+    <ItemGroup>
+      <!-- Filter the static web assets foreign to the project and then add them to the list of resolved
+           files to publish.
+       -->
+      <_ExternalBuildStaticWebAsset Include="%(StaticWebAsset.FullPath)" Condition="'%(SourceType)' != ''">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)','$([MSBuild]::NormalizePath('wwwroot\%(BasePath)\%(RelativePath)'))'))</TargetPath>
+      </_ExternalBuildStaticWebAsset>
+      <!-- Remove any existing external static web asset that might have been added as part of the
+           regular publish pipeline. -->
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_ExternalBuildStaticWebAsset)" />
+      <_SourceItemsToCopyToOutputDirectory Include="@(_ExternalBuildStaticWebAsset)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

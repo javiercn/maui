@@ -51,11 +51,20 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without a component type assembly.");
 			}
 
+			// We use the entry assembly's location to determine where the static assets got copied to.
+			// It is critical to avoid calling System.IO.Path APIs that use the "current directory"
+			// when they are passed in a relative path, because the app has no control over where
+			// the "current directory" is (it could be anywhere).
+			var entryAssemblyPath = global::System.Reflection.Assembly.GetEntryAssembly()!.Location;
+			var entryAssemblyFolder = Path.GetDirectoryName(entryAssemblyPath);
+
 			// We assume the host page is always in the root of the content directory, because it's
 			// unclear there's any other use case. We can add more options later if so.
-			var contentRootDir = Path.GetDirectoryName(HostPage) ?? string.Empty;
-			var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
-			var fileProvider = new ManifestEmbeddedFileProvider(resourceAssembly, root: contentRootDir);
+			var hostPageFullPath = Path.Combine(entryAssemblyFolder!, HostPage!);
+			var contentRootDirFullPath = Path.GetDirectoryName(hostPageFullPath) ?? string.Empty;
+			var hostPageRelativePath = Path.GetRelativePath(contentRootDirFullPath, hostPageFullPath);
+
+			var fileProvider = new PhysicalFileProvider(contentRootDirFullPath);
 
 			_webviewManager = new WebView2WebViewManager(new WinUIWebView2Wrapper(NativeView), Services!, MauiDispatcher.Instance, fileProvider, hostPageRelativePath);
 			if (RootComponents != null)
