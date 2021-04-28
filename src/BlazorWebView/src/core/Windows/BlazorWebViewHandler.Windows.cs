@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Maui.Handlers;
 using WebView2Control = Microsoft.UI.Xaml.Controls.WebView2;
@@ -10,6 +11,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 	public partial class BlazorWebViewHandler : ViewHandler<IBlazorWebView, WebView2Control>
 	{
 		private WebView2WebViewManager? _webviewManager;
+		private ObservableCollection<RootComponent>? _rootComponents;
 
 		protected override WebView2Control CreateNativeView()
 		{
@@ -30,25 +32,48 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			Services != null;
 
 		private string? HostPage { get; set; }
-		private ObservableCollection<RootComponent>? RootComponents { get; set; }
-		private new IServiceProvider? Services { get; set; }
+		private ObservableCollection<RootComponent>? RootComponents
+		{
+			get => _rootComponents;
+			set
+			{
+				if (_rootComponents != null)
+				{
+					// Remove any previously-known root components and unhook events
+					_rootComponents.Clear();
+					_rootComponents.CollectionChanged -= OnRootComponentsCollectionChanged;
+				}
+
+				_rootComponents = value;
+
+				if (_rootComponents != null)
+				{
+					// Add new root components and hook events
+					if (_rootComponents.Count > 0 && _webviewManager != null)
+					{
+						_ = _webviewManager.Dispatcher.InvokeAsync(async () =>
+						{
+							foreach (var component in _rootComponents)
+							{
+								await component.AddToWebViewManagerAsync(_webviewManager);
+							}
+						});
+					}
+					_rootComponents.CollectionChanged += OnRootComponentsCollectionChanged;
+				}
+			}
+		}
 
 		private void StartWebViewCoreIfPossible()
 		{
 			if (!RequiredStartupPropertiesSet ||
-				false)//_webviewManager != null)
+				_webviewManager != null)
 			{
 				return;
 			}
 			if (NativeView == null)
 			{
 				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without native web view instance.");
-			}
-
-			var resourceAssembly = RootComponents?[0]?.ComponentType?.Assembly;
-			if (resourceAssembly == null)
-			{
-				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without a component type assembly.");
 			}
 
 			// We use the entry assembly's location to determine where the static assets got copied to.
@@ -90,10 +115,28 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			handler.StartWebViewCoreIfPossible();
 		}
 
-		public static void MapServices(BlazorWebViewHandler handler, IBlazorWebView webView)
+		private void OnRootComponentsCollectionChanged(object? sender, global::System.Collections.Specialized.NotifyCollectionChangedEventArgs eventArgs)
 		{
-			handler.Services = webView.Services;
-			handler.StartWebViewCoreIfPossible();
+			// If we haven't initialized yet, this is a no-op
+			if (_webviewManager != null)
+			{
+				// Dispatch because this is going to be async, and we want to catch any errors
+				_ = _webviewManager.Dispatcher.InvokeAsync(async () =>
+				{
+					var newItems = eventArgs.NewItems!.Cast<RootComponent>();
+					var oldItems = eventArgs.OldItems!.Cast<RootComponent>();
+
+					foreach (var item in newItems.Except(oldItems))
+					{
+						await item.AddToWebViewManagerAsync(_webviewManager);
+					}
+
+					foreach (var item in oldItems.Except(newItems))
+					{
+						await item.RemoveFromWebViewManagerAsync(_webviewManager);
+					}
+				});
+			}
 		}
 	}
 }

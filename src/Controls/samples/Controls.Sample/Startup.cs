@@ -1,16 +1,21 @@
-﻿using System;
+﻿#if NET6_0_OR_GREATER
+#define BLAZOR_ENABLED
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Maui.Controls.Sample.Pages;
 using Maui.Controls.Sample.Services;
 using Maui.Controls.Sample.ViewModel;
-#if NET6_0_OR_GREATER
+#if BLAZOR_ENABLED
 using Microsoft.AspNetCore.Components.WebView.Maui;
 #endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Maui;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Essentials;
@@ -47,7 +52,7 @@ namespace Maui.Controls.Sample
 #endif
 			appBuilder
 				.UseMauiControlsHandlers()
-#if NET6_0_OR_GREATER
+#if BLAZOR_ENABLED
 				.RegisterBlazorMauiWebView()
 #endif
 				.ConfigureAppConfiguration(config =>
@@ -59,23 +64,36 @@ namespace Maui.Controls.Sample
 						{"Position:Name", "Dictionary_Name" },
 						{"Logging:LogLevel:Default", "Warning"}
 					});
-				})
-				.UseMauiServiceProviderFactory(true)
-				//.UseServiceProviderFactory(new DIExtensionsServiceProviderFactory())
+				});
+
+			if (_pageType == PageType.Blazor)
+            {
+				appBuilder.UseServiceProviderFactory(new DIExtensionsServiceProviderFactory()); // Blazor requires service scopes, which are supported only with Microsoft.Extensions.DependencyInjection
+			}
+			else
+            {
+				appBuilder.UseMauiServiceProviderFactory(constructorInjection: true);
+			}
+
+			appBuilder
 				.ConfigureServices(services =>
 				{
 					services.AddSingleton<ITextService, TextService>();
 					services.AddTransient<MainPageViewModel>();
 
+#if BLAZOR_ENABLED
+					services.AddBlazorWebView();
+#endif
+
 					services.AddTransient(
-						serviceType: typeof(IPage),
+						serviceType: _pageType == PageType.Blazor ? typeof(Page) : typeof(IPage),
 						implementationType: _pageType switch
 						{
 							PageType.NavigationPage => typeof(NavPage),
 							PageType.Xaml => typeof(XamlPage),
 							PageType.Semantics => typeof(SemanticsPage),
 							PageType.Blazor =>
-#if NET6_0_OR_GREATER
+#if BLAZOR_ENABLED
 								typeof(BlazorPage),
 #else
 								throw new NotSupportedException("Blazor requires .NET 6 or higher."),

@@ -6,6 +6,7 @@ using Microsoft.Maui.Handlers;
 using System;
 using System.Collections.ObjectModel;
 using Path = System.IO.Path;
+using System.Linq;
 
 namespace Microsoft.AspNetCore.Components.WebView.Maui
 {
@@ -15,6 +16,8 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 		private WebChromeClient? _webChromeClient;
 		private AndroidWebKitWebViewManager? _webviewManager;
 		internal AndroidWebKitWebViewManager? WebviewManager => _webviewManager;
+
+		private ObservableCollection<RootComponent>? _rootComponents;
 
 		protected override AWebView CreateNativeView()
 		{
@@ -54,13 +57,42 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			Services != null;
 
 		private string? HostPage { get; set; }
-		private ObservableCollection<RootComponent>? RootComponents { get; set; }
-		private new IServiceProvider? Services { get; set; }
+		private ObservableCollection<RootComponent>? RootComponents
+		{
+			get => _rootComponents;
+			set
+			{
+				if (_rootComponents != null)
+				{
+					// Remove any previously-known root components and unhook events
+					_rootComponents.Clear();
+					_rootComponents.CollectionChanged -= OnRootComponentsCollectionChanged;
+				}
+
+				_rootComponents = value;
+
+				if (_rootComponents != null)
+				{
+					// Add new root components and hook events
+					if (_rootComponents.Count > 0 && _webviewManager != null)
+					{
+						_ = _webviewManager.Dispatcher.InvokeAsync(async () =>
+						{
+							foreach (var component in _rootComponents)
+							{
+								await component.AddToWebViewManagerAsync(_webviewManager);
+							}
+						});
+					}
+					_rootComponents.CollectionChanged += OnRootComponentsCollectionChanged;
+				}
+			}
+		}
 
 		private void StartWebViewCoreIfPossible()
 		{
 			if (!RequiredStartupPropertiesSet ||
-				false)//_webviewManager != null)
+				_webviewManager != null)
 			{
 				return;
 			}
@@ -69,17 +101,16 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without native web view instance.");
 			}
 
-			var resourceAssembly = RootComponents?[0]?.ComponentType?.Assembly;
-			if (resourceAssembly == null)
-			{
-				throw new InvalidOperationException($"Can't start {nameof(BlazorWebView)} without a component type assembly.");
-			}
-
 			// We assume the host page is always in the root of the content directory, because it's
 			// unclear there's any other use case. We can add more options later if so.
 			var contentRootDir = Path.GetDirectoryName(HostPage) ?? string.Empty;
 			var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
-			var fileProvider = new ManifestEmbeddedFileProvider(resourceAssembly, root: contentRootDir);
+			var androidAssets = MauiContext?.Context.Assets;
+			if (androidAssets == null)
+			{
+				throw new InvalidOperationException($"Android AssetManager is not available on the {nameof(MauiContext)} so static assets cannot be loaded.");
+			}
+			var fileProvider = new AndroidAssetFileProvider(androidAssets, contentRoot: contentRootDir);
 
 			_webviewManager = new AndroidWebKitWebViewManager(this, NativeView, Services!, MauiDispatcher.Instance, fileProvider, hostPageRelativePath);
 			if (RootComponents != null)
@@ -112,10 +143,28 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			handler.StartWebViewCoreIfPossible();
 		}
 
-		public static void MapServices(BlazorWebViewHandler handler, IBlazorWebView webView)
+		private void OnRootComponentsCollectionChanged(object? sender, global::System.Collections.Specialized.NotifyCollectionChangedEventArgs eventArgs)
 		{
-			handler.Services = webView.Services;
-			handler.StartWebViewCoreIfPossible();
+			// If we haven't initialized yet, this is a no-op
+			if (_webviewManager != null)
+			{
+				// Dispatch because this is going to be async, and we want to catch any errors
+				_ = _webviewManager.Dispatcher.InvokeAsync(async () =>
+				{
+					var newItems = eventArgs.NewItems!.Cast<RootComponent>();
+					var oldItems = eventArgs.OldItems!.Cast<RootComponent>();
+
+					foreach (var item in newItems.Except(oldItems))
+					{
+						await item.AddToWebViewManagerAsync(_webviewManager);
+					}
+
+					foreach (var item in oldItems.Except(newItems))
+					{
+						await item.RemoveFromWebViewManagerAsync(_webviewManager);
+					}
+				});
+			}
 		}
 	}
 }

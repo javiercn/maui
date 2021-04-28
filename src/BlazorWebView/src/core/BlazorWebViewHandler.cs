@@ -9,7 +9,6 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 		{
 			[nameof(IBlazorWebView.HostPage)] = MapHostPage,
 			[nameof(IBlazorWebView.RootComponents)] = MapRootComponents,
-			[nameof(IBlazorWebView.Services)] = MapServices,
 		};
 
 		public BlazorWebViewHandler() : base(BlazorWebViewMapper)

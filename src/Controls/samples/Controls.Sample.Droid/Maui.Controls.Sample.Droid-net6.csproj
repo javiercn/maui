@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0-android</TargetFramework>
@@ -6,6 +6,7 @@
     <RootNamespace>Maui.Controls.Sample.Droid</RootNamespace>
     <AssemblyName>Maui.Controls.Sample.Droid</AssemblyName>
     <IsPackable>false</IsPackable>
+    <StaticWebAssetsEnabled>true</StaticWebAssetsEnabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,4 +16,30 @@
     <PackageReference Include="Xamarin.AndroidX.Browser" />
   </ItemGroup>
 
+  <Target Name="_StaticWebAssetsComputeFilesToBuild" AfterTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="ResolveStaticWebAssetsInputs">
+    <ItemGroup>
+      <_ExternalBuildStaticWebAsset Include="%(StaticWebAsset.FullPath)" Condition="'%(SourceType)' != ''">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)','$([MSBuild]::NormalizePath('wwwroot\%(BasePath)\%(RelativePath)'))'))</TargetPath>
+      </_ExternalBuildStaticWebAsset>
+      <_SourceItemsToCopyToOutputDirectory Remove="@(_ExternalBuildStaticWebAsset)" />
+      <_SourceItemsToCopyToOutputDirectory Include="@(_ExternalBuildStaticWebAsset)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ZipWWWRootPath" AfterTargets="_FindJavaStubFiles" BeforeTargets="_CreateBaseApk" DependsOnTargets="_StaticWebAssetsComputeFilesToBuild">
+    <MakeDir Directories="$(ProjectDir)Assets" />
+    <ZipDirectory SourceDirectory="$(ProjectDir)$(OutputPath)wwwroot" DestinationFile="$(ProjectDir)Assets\wwwroot.zip" Overwrite="true" />
+  </Target>
+
+  <Target Name="_StaticWebAssetsUpdateAssetPaths" AfterTargets="_FindJavaStubFiles" BeforeTargets="_CreateBaseApk" DependsOnTargets="ZipWWWRootPath">
+    <ItemGroup>
+      <WWWRootZipStaticWebAsset Include="Assets\wwwroot.zip" />
+      <AndroidAsset Include="@(WWWRootZipStaticWebAsset)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="DeleteAsset" AfterTargets="IncrementalClean" DependsOnTargets="ZipWWWRootPath">
+    <Delete Files="$(ProjectDir)Assets\wwwroot.zip" />
+  </Target>
 </Project>

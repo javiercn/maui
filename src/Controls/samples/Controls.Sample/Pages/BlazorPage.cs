@@ -25,12 +25,8 @@ namespace Maui.Controls.Sample.Pages
 
 		void SetupMauiLayout()
 		{
-			var verticalStack = new StackLayout() { Spacing = 5, BackgroundColor = Colors.Purple, };
+			var verticalStack = new VerticalStackLayout() { Spacing = 5, BackgroundColor = Colors.Purple, };
 			verticalStack.Add(new Label { Text = "The content below is brought to you by Blazor!", FontSize = 24, TextColor = Colors.BlanchedAlmond, HorizontalOptions = LayoutOptions.Center });
-
-			var serviceCollection = new ServiceCollection();
-			serviceCollection.AddBlazorWebView();
-			//serviceCollection.AddSingleton<AppState>(_appState);
 
 			var bwv = new BlazorWebView
 			{
@@ -41,7 +37,6 @@ namespace Maui.Controls.Sample.Pages
 				VerticalOptions=LayoutOptions.FillAndExpand,
 
 				// BlazorWebView properties
-				Services = serviceCollection.BuildServiceProvider(),
 				HostPage = @"wwwroot/index.html",
 			};
 			bwv.RootComponents.Add(new RootComponent { Selector = "#app", ComponentType = typeof(Main) });
