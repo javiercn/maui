@@ -1,4 +1,5 @@
-﻿using NativeView = Microsoft.UI.Xaml.FrameworkElement;
+﻿#nullable enable
+using NativeView = Microsoft.UI.Xaml.FrameworkElement;
 
 namespace Microsoft.Maui.Handlers
 {
