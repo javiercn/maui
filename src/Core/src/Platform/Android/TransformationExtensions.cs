@@ -18,7 +18,17 @@ namespace Microsoft.Maui
 
 		public static void UpdateScale(this AView nativeView, IView view)
 		{
+			nativeView.UpdateScaleX(view);
+			nativeView.UpdateScaleY(view);
+		}
+
+		public static void UpdateScaleX(this AView nativeView, IView view)
+		{
 			nativeView.ScaleX = (float)view.Scale * (float)view.ScaleX;
+		}
+
+		public static void UpdateScaleY(this AView nativeView, IView view)
+		{
 			nativeView.ScaleY = (float)view.Scale * (float)view.ScaleY;
 		}
 

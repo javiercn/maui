@@ -20,6 +20,16 @@ namespace Microsoft.Maui.Handlers
 			((NativeView?)handler.NativeView)?.UpdateScaleAndRotation(view);
 		}
 
+		public static void MapScaleX(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateScaleAndRotation(view);
+		}
+
+		public static void MapScaleY(IViewHandler handler, IView view)
+		{
+			((NativeView?)handler.NativeView)?.UpdateScaleAndRotation(view);
+		}
+
 		public static void MapRotation(IViewHandler handler, IView view) 
 		{ 
 			((NativeView?)handler.NativeView)?.UpdateRotation(view); 

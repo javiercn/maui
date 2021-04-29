@@ -8,6 +8,10 @@
 
 		public static void MapScale(IViewHandler handler, IView view) { }
 
+		public static void MapScaleX(IViewHandler handler, IView view) { }
+
+		public static void MapScaleY(IViewHandler handler, IView view) { }
+
 		public static void MapRotation(IViewHandler handler, IView view) { }
 
 		public static void MapRotationX(IViewHandler handler, IView view) { }
