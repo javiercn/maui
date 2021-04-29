@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Drawing;
 using CoreAnimation;
 using CoreGraphics;
+using Microsoft.Maui.Graphics;
 using UIKit;
 
 namespace Microsoft.Maui

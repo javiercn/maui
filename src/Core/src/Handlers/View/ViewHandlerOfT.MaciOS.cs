@@ -1,4 +1,5 @@
 using UIKit;
+using Microsoft.Maui.Graphics;
 
 namespace Microsoft.Maui.Handlers
 {

@@ -1,5 +1,6 @@
 ﻿using CoreAnimation;
 using CoreGraphics;
+using Microsoft.Maui.Graphics;
 using NativeView = UIKit.UIView;
 
 namespace Microsoft.Maui.Handlers
