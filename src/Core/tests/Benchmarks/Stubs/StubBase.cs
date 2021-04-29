@@ -40,6 +40,26 @@ namespace Microsoft.Maui.Handlers.Benchmarks
 
 		public Semantics Semantics { get; set; } = new Semantics();
 
+		public double TranslationX { get; set; }
+
+		public double TranslationY { get; set; }
+
+		public double Scale { get; set; }
+
+		public double ScaleX { get; set; }
+
+		public double ScaleY { get; set; }
+
+		public double Rotation { get; set; }
+
+		public double RotationX { get; set; }
+
+		public double RotationY { get; set; }
+
+		public double AnchorX { get; set; }
+
+		public double AnchorY { get; set; }
+
 		public Size Arrange(Rectangle bounds)
 		{
 			Frame = bounds;
