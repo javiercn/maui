@@ -1,7 +1,6 @@
 ﻿using Android.Webkit;
 using static Android.Views.ViewGroup;
 using AWebView = Android.Webkit.WebView;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Maui.Handlers;
 using System;
 using System.Collections.ObjectModel;
