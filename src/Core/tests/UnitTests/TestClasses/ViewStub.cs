@@ -58,14 +58,6 @@ namespace Microsoft.Maui.UnitTests
 
 		public double AnchorY { get; set; }
 
-		public void Arrange(Rectangle bounds) { }
-
-		public void InvalidateArrange() { }
-
-		public void InvalidateMeasure() { }
-
-		public Size Measure(double widthConstraint, double heightConstraint) =>
-			Size.Zero;
 		public Size Arrange(Rectangle bounds)
 		{
 			throw new NotImplementedException();
@@ -77,6 +69,11 @@ namespace Microsoft.Maui.UnitTests
 		}
 
 		public void InvalidateMeasure()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Size Measure(double widthConstraint, double heightConstraint)
 		{
 			throw new NotImplementedException();
 		}
