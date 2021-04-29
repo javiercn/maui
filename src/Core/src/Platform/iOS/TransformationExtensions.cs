@@ -62,7 +62,7 @@ namespace Microsoft.Maui
 				// Ripe for optimization
 				var transform = CATransform3D.Identity;
 
-				bool shouldUpdate = width > 0 && height > 0 && parent != null;
+				bool shouldUpdate = view is not IPage && width > 0 && height > 0 && parent != null;
 
 				if (shouldUpdate)
 				{
