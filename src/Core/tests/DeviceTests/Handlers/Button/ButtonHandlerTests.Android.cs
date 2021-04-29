@@ -89,7 +89,7 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(expectedRight, right);
 			Assert.Equal(expectedBottom, bottom);
 		}
-				
+
 		AppCompatButton GetNativeButton(ButtonHandler buttonHandler) =>
 			buttonHandler.NativeView;
 
