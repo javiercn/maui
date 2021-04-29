@@ -11,32 +11,15 @@ namespace Microsoft.Maui
 		public static void UpdateTransformation(this UIView nativeView, IView? view)
 		{
 			CALayer? layer = nativeView.Layer;
-			bool isInteractive = nativeView.UserInteractionEnabled;
 			CGPoint? originalAnchor = layer?.AnchorPoint;
-			Rectangle? lastBounds = view?.Frame;
 
-			nativeView.UpdateTransformation(view, layer, isInteractive, originalAnchor, lastBounds);
+			nativeView.UpdateTransformation(view, layer, originalAnchor);
 		}
 
-		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, bool isInteractive, CGPoint? originalAnchor, Rectangle? lastBounds)
+		public static void UpdateTransformation(this UIView nativeView, IView? view, CALayer? layer, CGPoint? originalAnchor)
 		{
 			if (view == null)
 				return;
-
-			bool shouldInteract;
-
-			if (view is ILayout layout)
-				shouldInteract = layout.IsEnabled;
-			else
-				shouldInteract = view.IsEnabled;
-
-			if (isInteractive != shouldInteract)
-			{
-				nativeView.UserInteractionEnabled = shouldInteract;
-				isInteractive = shouldInteract;
-			}
-
-			var boundsChanged = lastBounds != view.Frame;
 
 			var anchorX = (float)view.AnchorX;
 			var anchorY = (float)view.AnchorY;
@@ -81,8 +64,6 @@ namespace Microsoft.Maui
 
 				bool shouldUpdate = width > 0 && height > 0 && parent != null;
 
-				// Dont ever attempt to actually change the layout of a Page unless it is a ContentPage
-				// iOS is a really big fan of you not actually modifying the View's of the UIViewControllers
 				if (shouldUpdate)
 				{
 					var target = new RectangleF(x, y, width, height);
@@ -152,8 +133,6 @@ namespace Microsoft.Maui
 			// TODO: Use the thread var when porting the Device class.
 
 			Update();
-
-			lastBounds = view.Frame;
 		}
 	}
 }

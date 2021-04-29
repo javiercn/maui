@@ -50,6 +50,7 @@ namespace Maui.Controls.Sample.Pages
 
 			verticalStack.Add(CreateSampleGrid());
 			AddTextResizeDemo(verticalStack);
+			verticalStack.Add(CreateTransformations());
 
 			verticalStack.Add(new Label { Text = " ", Padding = new Thickness(10) });
 			var label = new Label { Text = "End-aligned text", BackgroundColor = Colors.Fuchsia, HorizontalTextAlignment = TextAlignment.End };
@@ -69,9 +70,8 @@ namespace Maui.Controls.Sample.Pages
 				new Button
 				{
 					Text = "Push a Page",
-					Rotation = 30,
+					Rotation = 15,
 					Scale = 1.5,
-					TranslationX = 60,
 					Command = new Command(async () =>
 					{
 						await Navigation.PushAsync(new SemanticsPage());
@@ -308,6 +308,18 @@ namespace Maui.Controls.Sample.Pages
 			layout.BackgroundColor = Colors.Chartreuse;
 
 			return layout;
+		}
+
+		IView CreateTransformations()
+		{
+			var verticalStack = new VerticalStackLayout();
+			var label = new Button { BackgroundColor = Colors.Red, TextColor = Colors.White, Text = "Transformations" };
+			var rotationSlider = new Slider { Minimum = -360, Maximum = 360 };
+			rotationSlider.ValueChanged += (sender, e) => label.Rotation = e.NewValue;
+			verticalStack.Add(rotationSlider);
+			verticalStack.Add(label);
+
+			return verticalStack;
 		}
 
 		void AddTextResizeDemo(Microsoft.Maui.ILayout layout)

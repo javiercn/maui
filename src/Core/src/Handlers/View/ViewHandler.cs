@@ -84,19 +84,21 @@ namespace Microsoft.Maui.Handlers
 		// TODO ezhart This should maybe be called NativeArrange or something
 		public abstract void SetFrame(Rectangle frame);
 
-		private protected void ConnectHandler(NativeView? nativeView) { }
-
-		partial void SettingDefault(NativeView? nativeView);
-
-		private protected void SetupDefaults(NativeView? nativeView)
+		private protected void ConnectHandler(NativeView? nativeView)
 		{
-			SettingDefault(nativeView);
+#if __IOS__
+			_layer = nativeView?.Layer;
+			_originalAnchor = _layer?.AnchorPoint;
+#endif
 		}
 
 		partial void DisconnectingHandler(NativeView? nativeView);
 
 		private protected void DisconnectHandler(NativeView? nativeView)
 		{
+#if __IOS__
+			_originalAnchor = null;
+#endif
 			DisconnectingHandler(nativeView);
 
 			if (VirtualView != null)
