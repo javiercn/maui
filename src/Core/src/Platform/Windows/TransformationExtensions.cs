@@ -6,7 +6,7 @@ namespace Microsoft.Maui
 {
 	public static class TransformationExtensions
 	{
-		public static void UpdateRotation(this FrameworkElement frameworkElement, IView view)
+		public static void UpdateTransformation(this FrameworkElement frameworkElement, IView view)
 		{
 			double anchorX = view.AnchorX;
 			double anchorY = view.AnchorY;
@@ -18,7 +18,10 @@ namespace Microsoft.Maui
 			double scaleX = view.Scale * view.ScaleX;
 			double scaleY = view.Scale * view.ScaleY;
 
-			if (rotationX % 360 == 0 && rotationY % 360 == 0 && rotation % 360 == 0 && 
+			frameworkElement.RenderTransformOrigin = new Windows.Foundation.Point(anchorX, anchorY);
+			frameworkElement.RenderTransform = new ScaleTransform { ScaleX = scaleX, ScaleY = scaleY };
+
+			if (rotationX % 360 == 0 && rotationY % 360 == 0 && rotation % 360 == 0 &&
 				translationX == 0 && translationY == 0 && scaleX == 1 && scaleY == 1)
 			{
 				frameworkElement.Projection = null;
@@ -58,15 +61,6 @@ namespace Microsoft.Maui
 					};
 				}
 			}
-		}
-		public static void UpdateScaleAndRotation(this FrameworkElement frameworkElement, IView view)
-		{
-			double anchorX = view.AnchorX;
-			double anchorY = view.AnchorY;
-			frameworkElement.RenderTransformOrigin = new Windows.Foundation.Point(anchorX, anchorY);
-			frameworkElement.RenderTransform = new ScaleTransform { ScaleX = view.Scale * view.ScaleX, ScaleY = view.Scale * view.ScaleY };
-
-			frameworkElement.UpdateRotation(view);
 		}
 	}
 }
