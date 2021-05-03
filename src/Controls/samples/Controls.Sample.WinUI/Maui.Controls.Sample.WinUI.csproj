@@ -1,4 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <!-- Normally this import would be automatic through the NuGet package. We do it manually for projects inside this solution. -->
+  <Import Project="..\..\..\BlazorWebView\src\core\build\net6.0-windows\Microsoft.AspNetCore.Components.WebView.Maui.props" Condition="$(TargetFramework.StartsWith('net6.0-windows'))" /> 
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,7 +10,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;arm64</Platforms>
     <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-    <StaticWebAssetsEnabled>true</StaticWebAssetsEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.ProjectReunion" />
@@ -24,20 +25,6 @@
     <ProjectReference Include="..\Controls.Sample\Maui.Controls.Sample-net6.csproj" />
   </ItemGroup>
 
-  <Target Name="_StaticWebAssetsComputeFilesToBuild" AfterTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="ResolveStaticWebAssetsInputs">
-    <ItemGroup>
-      <!-- Filter the static web assets foreign to the project and then add them to the list of resolved
-           files to publish.
-       -->
-      <_ExternalBuildStaticWebAsset Include="%(StaticWebAsset.FullPath)" Condition="'%(SourceType)' != ''">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <TargetPath>$([MSBuild]::MakeRelative('$(MSBuildProjectDirectory)','$([MSBuild]::NormalizePath('wwwroot\%(BasePath)\%(RelativePath)'))'))</TargetPath>
-      </_ExternalBuildStaticWebAsset>
-      <!-- Remove any existing external static web asset that might have been added as part of the
-           regular publish pipeline. -->
-      <_SourceItemsToCopyToOutputDirectory Remove="@(_ExternalBuildStaticWebAsset)" />
-      <_SourceItemsToCopyToOutputDirectory Include="@(_ExternalBuildStaticWebAsset)" />
-    </ItemGroup>
-  </Target>
-
+  <!-- Normally this import would be automatic through the NuGet package. We do it manually for projects inside this solution. -->
+  <Import Project="..\..\..\BlazorWebView\src\core\build\net6.0-windows\Microsoft.AspNetCore.Components.WebView.Maui.targets" Condition="$(TargetFramework.StartsWith('net6.0-windows'))" /> 
 </Project>
