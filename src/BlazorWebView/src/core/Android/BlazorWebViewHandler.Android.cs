@@ -104,7 +104,7 @@ namespace Microsoft.AspNetCore.Components.WebView.Maui
 			// unclear there's any other use case. We can add more options later if so.
 			var contentRootDir = Path.GetDirectoryName(HostPage) ?? string.Empty;
 			var hostPageRelativePath = Path.GetRelativePath(contentRootDir, HostPage!);
-			var androidAssets = MauiContext?.Context.Assets;
+			var androidAssets = MauiContext?.Context?.Assets;
 			if (androidAssets == null)
 			{
 				throw new InvalidOperationException($"Android AssetManager is not available on the {nameof(MauiContext)} so static assets cannot be loaded.");
