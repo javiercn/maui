@@ -1,13 +1,13 @@
 using Android.Content;
 using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public static class ElevationHelper
 	{
 		public static void SetElevation(global::Android.Views.View view, VisualElement element)
 		{
-			if (view == null || element == null || !Forms.IsLollipopOrNewer)
+			if (view == null || element == null)
 			{
 				return;
 			}
@@ -18,7 +18,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static void SetElevation(global::Android.Views.View view, float? elevation)
 		{
-			if (view == null || !Forms.IsLollipopOrNewer)
+			if (view == null)
 			{
 				return;
 			}
@@ -33,7 +33,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		internal static float? GetElevation(global::Android.Views.View view)
 		{
-			if (view == null || !Forms.IsLollipopOrNewer)
+			if (view == null)
 			{
 				return null;
 			}
@@ -43,7 +43,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		internal static float? GetElevation(VisualElement element, Context context)
 		{
-			if (element == null || !Forms.IsLollipopOrNewer)
+			if (element == null)
 			{
 				return null;
 			}

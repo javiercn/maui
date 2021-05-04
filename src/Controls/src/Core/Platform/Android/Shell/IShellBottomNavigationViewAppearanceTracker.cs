@@ -2,7 +2,7 @@
 using System;
 using Google.Android.Material.BottomNavigation;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public interface IShellBottomNavViewAppearanceTracker : IDisposable
 	{

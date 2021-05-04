@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml.Input;
 
 namespace Microsoft.Maui.Controls.Platform
 {
-	public class ShellToolbarItemRenderer : Microsoft.UI.Xaml.Controls.Button
+	public class ShellToolbarItemView : Microsoft.UI.Xaml.Controls.Button
 	{
 
 		public static readonly DependencyProperty ToolbarItemProperty =

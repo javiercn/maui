@@ -1,7 +1,7 @@
 using System;
 using AndroidX.Fragment.App;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public interface IShellObservableFragment
 	{

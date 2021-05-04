@@ -4,7 +4,7 @@ using Android.Views;
 using Android.Widget;
 using AView = Android.Views.View;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android.FastRenderers
+namespace Microsoft.Maui.Controls.Platform
 {
 	internal class AutomationPropertiesProvider : IDisposable
 	{

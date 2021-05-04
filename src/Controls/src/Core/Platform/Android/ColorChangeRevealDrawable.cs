@@ -4,7 +4,7 @@ using Android.Graphics;
 using Android.Graphics.Drawables;
 using AColor = Android.Graphics.Color;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public class ColorChangeRevealDrawable : AnimationDrawable
 	{

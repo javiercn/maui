@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Maui.Graphics;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public interface IShellToolbarTracker : IDisposable
 	{
