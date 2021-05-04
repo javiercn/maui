@@ -28,12 +28,12 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public virtual void ResetAppearance(Toolbar toolbar, IShellToolbarTracker toolbarTracker)
 		{
-			SetColors(toolbar, toolbarTracker, ShellRenderer.DefaultForegroundColor, ShellRenderer.DefaultBackgroundColor, ShellRenderer.DefaultTitleColor);
+			SetColors(toolbar, toolbarTracker, ShellView.DefaultForegroundColor, ShellView.DefaultBackgroundColor, ShellView.DefaultTitleColor);
 		}
 
 		protected virtual void SetColors(Toolbar toolbar, IShellToolbarTracker toolbarTracker, Color foreground, Color background, Color title)
 		{
-			var titleArgb = title.ToNative(ShellRenderer.DefaultTitleColor).ToArgb();
+			var titleArgb = title.ToNative(ShellView.DefaultTitleColor).ToArgb();
 
 			if (_titleTextColor != titleArgb)
 			{
@@ -41,14 +41,14 @@ namespace Microsoft.Maui.Controls.Platform
 				_titleTextColor = titleArgb;
 			}
 
-			var newColor = background.ToNative(ShellRenderer.DefaultBackgroundColor);
+			var newColor = background.ToNative(ShellView.DefaultBackgroundColor);
 			if (!(toolbar.Background is ColorDrawable cd) || cd.Color != newColor)
 			{
-				using (var colorDrawable = new ColorDrawable(background.ToNative(ShellRenderer.DefaultBackgroundColor)))
+				using (var colorDrawable = new ColorDrawable(background.ToNative(ShellView.DefaultBackgroundColor)))
 					toolbar.SetBackground(colorDrawable);
 			}
 
-			var newTintColor = foreground ?? ShellRenderer.DefaultForegroundColor;
+			var newTintColor = foreground ?? ShellView.DefaultForegroundColor;
 
 			if (toolbarTracker.TintColor != newTintColor)
 				toolbarTracker.TintColor = newTintColor;

@@ -12,9 +12,11 @@ namespace Microsoft.Maui.Controls.Platform
 		bool _disposed;
 		ShellSection _shellSection;
 		IShellSectionController SectionController => (IShellSectionController)_shellSection;
+		IMauiContext _mauiContext;
 
-		public ShellFragmentPagerAdapter(ShellSection shellSection, FragmentManager fragmentManager) : base(fragmentManager, FragmentStatePagerAdapter.BehaviorResumeOnlyCurrentFragment)
+		public ShellFragmentPagerAdapter(ShellSection shellSection, FragmentManager fragmentManager, IMauiContext mauiContext) : base(fragmentManager, FragmentStatePagerAdapter.BehaviorResumeOnlyCurrentFragment)
 		{
+			_mauiContext = mauiContext;
 			_shellSection = shellSection;
 			SectionController.ItemsCollectionChanged += OnItemsCollectionChanged;
 		}
@@ -30,7 +32,7 @@ namespace Microsoft.Maui.Controls.Platform
 		public override Fragment GetItem(int position)
 		{
 			var shellContent = SectionController.GetItems()[position];
-			return new ShellFragmentContainer(shellContent) { Arguments = Bundle.Empty };
+			return new ShellFragmentContainer(shellContent, _mauiContext) { Arguments = Bundle.Empty };
 		}
 
 		public override long GetItemId(int position)

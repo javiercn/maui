@@ -1,7 +1,7 @@
 
 using AndroidX.Fragment.App;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	// This is a way to centralize all fragment modifications which makes it a lot easier to debug
 	internal static class FragmentManagerExtensions

@@ -11,7 +11,6 @@ using Android.Widget;
 using AndroidX.AppCompat.Widget;
 using AndroidX.CardView.Widget;
 using Java.Lang;
-using Microsoft.Maui.Controls.Platform.FastRenderers;
 using Microsoft.Maui.Controls.Platform;
 using AColor = Android.Graphics.Color;
 using AImageButton = Android.Widget.ImageButton;
@@ -50,7 +49,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 		protected virtual SearchHandlerAppearanceTracker CreateSearchHandlerAppearanceTracker()
 		{
-			return new SearchHandlerAppearanceTracker(this);
+			return new SearchHandlerAppearanceTracker(this, _shellContext);
 		}
 
 		#endregion IShellSearchView
@@ -93,6 +92,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 		#endregion ITextWatcher
 
+		IMauiContext MauiContext => _shellContext.Shell.Handler.MauiContext;
 		IShellContext _shellContext;
 		CardView _cardView;
 		AImageButton _clearButton;
@@ -283,8 +283,8 @@ namespace Microsoft.Maui.Controls.Platform
 			for (int i = 0; i < ChildCount; i++)
 			{
 				var child = GetChildAt(i);
-				child.Measure(MeasureSpecFactory.MakeMeasureSpec(width, MeasureSpecMode.Exactly),
-							  MeasureSpecFactory.MakeMeasureSpec(height, MeasureSpecMode.Exactly));
+				child.Measure(MakeMeasureSpec(width, MeasureSpecMode.Exactly),
+							  MakeMeasureSpec(height, MeasureSpecMode.Exactly));
 				child.Layout(0, 0, width, height);
 			}
 
@@ -296,10 +296,21 @@ namespace Microsoft.Maui.Controls.Platform
 		protected override void OnMeasure(int widthMeasureSpec, int heightMeasureSpec)
 		{
 			base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
-			var measureWidth = MeasureSpecFactory.GetSize(widthMeasureSpec);
-			var measureHeight = MeasureSpecFactory.GetSize(heightMeasureSpec);
+			var measureWidth = GetSize(widthMeasureSpec);
+			var measureHeight = GetSize(heightMeasureSpec);
 
 			SetMeasuredDimension(measureWidth, (int)Context.ToPixels(35));
+		}
+
+		int GetSize(int measureSpec)
+		{
+			const int modeMask = 0x3 << 30;
+			return measureSpec & ~modeMask;
+		}
+
+		int MakeMeasureSpec(int size, MeasureSpecMode mode)
+		{
+			return size + (int)mode;
 		}
 
 		protected virtual void OnSearchButtonClicked(object sender, EventArgs e)
@@ -317,15 +328,12 @@ namespace Microsoft.Maui.Controls.Platform
 			if (bindable.GetValue(property) is ImageSource image)
 				AutomationPropertiesProvider.SetContentDescription(result, image, null, null);
 
-			_shellContext.ApplyDrawableAsync(bindable, property, drawable =>
+			new ShellImagePart()
 			{
-				if (drawable != null)
-					result.SetImageDrawable(drawable);
-				else if (defaultImage > 0)
-					result.SetImageResource(defaultImage);
-				else
-					result.SetImageDrawable(null);
-			});
+				Source = (ImageSource)bindable.GetValue(property),
+				MauiContext = MauiContext
+			}.LoadImage(result);
+
 			var lp = new LinearLayout.LayoutParams((int)Context.ToPixels(22), LP.MatchParent)
 			{
 				LeftMargin = leftMargin,

@@ -5,7 +5,7 @@ using Android.Util;
 using Android.Views;
 using Android.Widget;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public class CustomFrameLayout : FrameLayout
 	{

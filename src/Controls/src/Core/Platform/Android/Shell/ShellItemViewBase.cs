@@ -12,13 +12,13 @@ using Microsoft.Maui.Graphics;
 
 namespace Microsoft.Maui.Controls.Platform
 {
-	public abstract class ShellItemRendererBase : Fragment, IShellItemRenderer
+	public abstract class ShellItemViewBase : Fragment, IShellItemView
 	{
-		#region IShellItemRenderer
+		#region ShellItemView
 
-		Fragment IShellItemRenderer.Fragment => this;
+		Fragment IShellItemView.Fragment => this;
 
-		ShellItem IShellItemRenderer.ShellItem
+		ShellItem IShellItemView.ShellItem
 		{
 			get { return ShellItem; }
 			set { ShellItem = value; }
@@ -34,7 +34,7 @@ namespace Microsoft.Maui.Controls.Platform
 		Page _displayedPage;
 		bool _disposed;
 
-		protected ShellItemRendererBase(IShellContext shellContext)
+		protected ShellItemViewBase(IShellContext shellContext)
 		{
 			ShellContext = shellContext;
 		}
@@ -123,7 +123,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 		protected virtual IShellObservableFragment GetOrCreateFragmentForTab(ShellSection shellSection)
 		{
-			var renderer = ShellContext.CreateShellSectionRenderer(shellSection);
+			var renderer = ShellContext.CreateShellSectionView(shellSection);
 			renderer.ShellSection = shellSection;
 			return renderer;
 		}

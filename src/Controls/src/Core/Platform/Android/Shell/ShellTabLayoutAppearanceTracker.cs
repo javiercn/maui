@@ -17,10 +17,10 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public virtual void ResetAppearance(TabLayout tabLayout)
 		{
-			SetColors(tabLayout, ShellRenderer.DefaultForegroundColor,
-				ShellRenderer.DefaultBackgroundColor,
-				ShellRenderer.DefaultTitleColor,
-				ShellRenderer.DefaultUnselectedColor);
+			SetColors(tabLayout, ShellView.DefaultForegroundColor,
+				ShellView.DefaultBackgroundColor,
+				ShellView.DefaultTitleColor,
+				ShellView.DefaultUnselectedColor);
 		}
 
 		public virtual void SetAppearance(TabLayout tabLayout, ShellAppearance appearance)
@@ -35,12 +35,12 @@ namespace Microsoft.Maui.Controls.Platform
 
 		protected virtual void SetColors(TabLayout tabLayout, Color foreground, Color background, Color title, Color unselected)
 		{
-			var titleArgb = title.ToNative(ShellRenderer.DefaultTitleColor).ToArgb();
-			var unselectedArgb = unselected.ToNative(ShellRenderer.DefaultUnselectedColor).ToArgb();
+			var titleArgb = title.ToNative(ShellView.DefaultTitleColor).ToArgb();
+			var unselectedArgb = unselected.ToNative(ShellView.DefaultUnselectedColor).ToArgb();
 
 			tabLayout.SetTabTextColors(unselectedArgb, titleArgb);
-			tabLayout.SetBackground(new ColorDrawable(background.ToNative(ShellRenderer.DefaultBackgroundColor)));
-			tabLayout.SetSelectedTabIndicatorColor(foreground.ToNative(ShellRenderer.DefaultForegroundColor));
+			tabLayout.SetBackground(new ColorDrawable(background.ToNative(ShellView.DefaultBackgroundColor)));
+			tabLayout.SetSelectedTabIndicatorColor(foreground.ToNative(ShellView.DefaultForegroundColor));
 		}
 
 		#region IDisposable

@@ -12,11 +12,11 @@ namespace Microsoft.Maui.Controls.Platform
 
 		IShellObservableFragment CreateFragmentForPage(Page page);
 
-		IShellFlyoutContentView CreateShellFlyoutContentRenderer();
+		IShellFlyoutContentView CreateShellFlyoutContentView();
 
-		IShellItemView CreateShellItemRenderer(ShellItem shellItem);
+		IShellItemView CreateShellItemView(ShellItem shellItem);
 
-		IShellSectionView CreateShellSectionRenderer(ShellSection shellSection);
+		IShellSectionView CreateShellSectionView(ShellSection shellSection);
 
 		IShellToolbarTracker CreateTrackerForToolbar(Toolbar toolbar);
 

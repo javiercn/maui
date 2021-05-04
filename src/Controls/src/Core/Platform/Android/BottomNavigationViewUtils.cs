@@ -7,6 +7,7 @@ using Android.Views;
 using Android.Widget;
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.BottomSheet;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Graphics;
 using AColor = Android.Graphics.Color;
@@ -18,7 +19,7 @@ using Orientation = Android.Widget.Orientation;
 using Typeface = Android.Graphics.Typeface;
 using TypefaceStyle = Android.Graphics.TypefaceStyle;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public static class BottomNavigationViewUtils
 	{
@@ -26,13 +27,9 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static Drawable CreateItemBackgroundDrawable()
 		{
-			var stateList = ColorStateList.ValueOf(Colors.Black.MultiplyAlpha(0.2f).ToAndroid());
+			var stateList = ColorStateList.ValueOf(Colors.Black.MultiplyAlpha(0.2f).ToNative());
 			var colorDrawable = new ColorDrawable(AColor.White);
-
-			if (Forms.IsLollipopOrNewer)
-				return new RippleDrawable(stateList, colorDrawable, null);
-
-			return colorDrawable;
+			return new RippleDrawable(stateList, colorDrawable, null);
 		}
 
 		internal static void UpdateEnabled(bool tabEnabled, IMenuItem menuItem)
@@ -47,8 +44,9 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			List<(string title, ImageSource icon, bool tabEnabled)> items,
 			int currentIndex,
 			BottomNavigationView bottomView,
-			Context context)
+			IMauiContext mauiContext)
 		{
+			Context context = mauiContext.Context;
 			menu.Clear();
 			int numberOfMenuItems = items.Count;
 			bool showMore = numberOfMenuItems > maxBottomItems;
@@ -64,7 +62,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 				{
 					var menuItem = menu.Add(0, i, 0, title);
 					menuItems.Add(menuItem);
-					loadTasks.Add(SetMenuItemIcon(menuItem, item.icon, context));
+					loadTasks.Add(SetMenuItemIcon(menuItem, item.icon, mauiContext));
 					UpdateEnabled(item.tabEnabled, menuItem);
 					if (i == currentIndex)
 					{
@@ -94,11 +92,16 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 				menuItem.Dispose();
 		}
 
-		static async Task SetMenuItemIcon(IMenuItem menuItem, ImageSource source, Context context)
+		static async Task SetMenuItemIcon(IMenuItem menuItem, ImageSource source, IMauiContext context)
 		{
 			if (source == null)
 				return;
-			var drawable = await context.GetFormsDrawableAsync(source);
+
+			var services = context.Services;
+			var provider = services.GetRequiredService<IImageSourceServiceProvider>();
+			var imageSourceService = provider.GetRequiredImageSourceService(source);
+			var drawableResult = await imageSourceService.GetDrawableAsync(source, context.Context);
+			var drawable = drawableResult.Value;
 			menuItem.SetIcon(drawable);
 			drawable?.Dispose();
 		}
@@ -106,18 +109,19 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static BottomSheetDialog CreateMoreBottomSheet(
 			Action<int, BottomSheetDialog> selectCallback,
-			Context context,
+			IMauiContext mauiContext,
 			List<(string title, ImageSource icon, bool tabEnabled)> items)
 		{
-			return CreateMoreBottomSheet(selectCallback, context, items, 5);
+			return CreateMoreBottomSheet(selectCallback, mauiContext, items, 5);
 		}
 
 		internal static BottomSheetDialog CreateMoreBottomSheet(
 			Action<int, BottomSheetDialog> selectCallback,
-			Context context,
+			IMauiContext mauiContext,
 			List<(string title, ImageSource icon, bool tabEnabled)> items,
 			int maxItemCount)
 		{
+			var context = mauiContext.Context;
 			var bottomSheetDialog = new BottomSheetDialog(context);
 			var bottomSheetLayout = new LinearLayout(context);
 			using (var bottomShellLP = new LP(LP.MatchParent, LP.WrapContent))
@@ -132,10 +136,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 				using (var innerLayout = new LinearLayout(context))
 				{
-					if (Forms.IsLollipopOrNewer)
-					{
-						innerLayout.ClipToOutline = true;
-					}
+					innerLayout.ClipToOutline = true;
 					innerLayout.SetBackground(CreateItemBackgroundDrawable());
 					innerLayout.SetPadding(0, (int)context.ToPixels(6), 0, (int)context.ToPixels(6));
 					innerLayout.Orientation = Orientation.Horizontal;
@@ -164,12 +165,18 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 					image.LayoutParameters = lp;
 					lp.Dispose();
 
-					if (Forms.IsLollipopOrNewer)
-					{
-						image.ImageTintList = ColorStateList.ValueOf(Colors.Black.MultiplyAlpha(0.6f).ToAndroid());
-					}
+					image.ImageTintList = ColorStateList.ValueOf(Colors.Black.MultiplyAlpha(0.6f).ToNative());
 
-					image.SetImage(shellContent.icon, context);
+					ShellImagePart shellImagePart = new ShellImagePart()
+					{
+						Source = shellContent.icon
+					};
+
+
+					var services = mauiContext.Services;
+					var provider = services.GetRequiredService<IImageSourceServiceProvider>();
+					image.UpdateSourceAsync(new ShellImagePart() { Source = shellContent.icon }, provider)
+						.FireAndForget(e => Internals.Log.Warning("MenuItem", $"{e}"));					
 
 					innerLayout.AddView(image);
 

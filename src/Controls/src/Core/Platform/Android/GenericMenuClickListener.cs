@@ -2,7 +2,7 @@ using System;
 using Android.Views;
 using Object = Java.Lang.Object;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	internal class GenericMenuClickListener : Object, IMenuItemOnMenuItemClickListener
 	{

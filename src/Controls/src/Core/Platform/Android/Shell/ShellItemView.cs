@@ -9,6 +9,7 @@ using Android.Views;
 using Android.Widget;
 using Google.Android.Material.BottomNavigation;
 using Google.Android.Material.BottomSheet;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Graphics;
 using AColor = Android.Graphics.Color;
@@ -19,7 +20,7 @@ using Orientation = Android.Widget.Orientation;
 
 namespace Microsoft.Maui.Controls.Platform
 {
-	public class ShellItemView : ShellItemRendererBase, BottomNavigationView.IOnNavigationItemSelectedListener, IAppearanceObserver
+	public class ShellItemView : ShellItemViewBase, BottomNavigationView.IOnNavigationItemSelectedListener, IAppearanceObserver
 	{
 		#region IOnNavigationItemSelectedListener
 
@@ -51,8 +52,9 @@ namespace Microsoft.Maui.Controls.Platform
 		BottomSheetDialog _bottomSheetDialog;
 		bool _disposed;
 		public IShellItemController ShellItemController => ShellItem;
+		IMauiContext MauiContext => ShellContext.Shell.Handler.MauiContext;
 
-		public ShellItemRenderer(IShellContext shellContext) : base(shellContext)
+		public ShellItemView(IShellContext shellContext) : base(shellContext)
 		{
 		}
 
@@ -203,21 +205,29 @@ namespace Microsoft.Maui.Controls.Platform
 					image.LayoutParameters = lp;
 					lp.Dispose();
 
-					ShellContext.ApplyDrawableAsync(shellContent, ShellSection.IconProperty, icon =>
-					{
-						if (!image.IsDisposed())
+					var services = MauiContext.Services;
+					var provider = services.GetRequiredService<IImageSourceServiceProvider>();
+					var icon = shellContent.Icon;
+
+					var imageLoad = new ShellImagePart() { Source = shellContent.Icon, MauiContext = MauiContext };
+
+					imageLoad.LoadImage(image,
+						(result) =>
 						{
-							var color = Colors.Black.MultiplyAlpha(0.6f).ToNative();
-							icon.SetTint(color);
-							image.SetImageDrawable(icon);
-						}
-					});
+							if (result.Value != null)
+							{
+								var color = Colors.Black.MultiplyAlpha(0.6f).ToNative();
+								result.Value.SetTint(color);
+							}
+						});
 
 					innerLayout.AddView(image);
 
 					using (var text = new TextView(Context))
 					{
-						text.Typeface = "sans-serif-medium".ToTypeface();
+						text.Typeface = services.GetRequiredService<IFontManager>()
+							.GetTypeface(Font.OfSize("sans-serif-medium", 0.0));
+
 						text.SetTextColor(AColor.Black);
 						text.Text = shellContent.Title;
 						lp = new LinearLayout.LayoutParams(0, LP.WrapContent)
@@ -277,7 +287,7 @@ namespace Microsoft.Maui.Controls.Platform
 			if (id == MoreTabId)
 			{
 				var items = CreateTabList(ShellItem);
-				_bottomSheetDialog = BottomNavigationViewUtils.CreateMoreBottomSheet(OnMoreItemSelected, Context, items, _bottomView.MaxItemCount);
+				_bottomSheetDialog = BottomNavigationViewUtils.CreateMoreBottomSheet(OnMoreItemSelected, MauiContext, items, _bottomView.MaxItemCount);
 				_bottomSheetDialog.Show();
 				_bottomSheetDialog.DismissEvent += OnMoreSheetDismissed;
 			}
@@ -385,7 +395,7 @@ namespace Microsoft.Maui.Controls.Platform
 				items,
 				currentIndex,
 				_bottomView,
-				Context);
+				MauiContext);
 
 			UpdateTabBarVisibility();
 		}

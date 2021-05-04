@@ -10,12 +10,11 @@ using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Fragment.App;
 using AndroidX.ViewPager.Widget;
 using Google.Android.Material.Tabs;
-using Microsoft.Maui.Controls.Platform.AppCompat;
 using AView = Android.Views.View;
 
 namespace Microsoft.Maui.Controls.Platform
 {
-	public class ShellSectionView : Fragment, IShellSectionRenderer, ViewPager.IOnPageChangeListener, AView.IOnClickListener, IShellObservableFragment, IAppearanceObserver
+	public class ShellSectionView : Fragment, IShellSectionView, ViewPager.IOnPageChangeListener, AView.IOnClickListener, IShellObservableFragment, IAppearanceObserver
 	{
 		#region IOnPageChangeListener
 
@@ -116,20 +115,21 @@ namespace Microsoft.Maui.Controls.Platform
 		Toolbar _toolbar;
 		IShellToolbarAppearanceTracker _toolbarAppearanceTracker;
 		IShellToolbarTracker _toolbarTracker;
-		FormsViewPager _viewPager;
+		MauiViewPager _viewPager;
 		bool _disposed;
 		IShellController ShellController => _shellContext.Shell;
-		public ShellSectionRenderer(IShellContext shellContext)
-		{
-			_shellContext = shellContext;
-		}
-
 		public event EventHandler AnimationFinished;
-
 		Fragment IShellObservableFragment.Fragment => this;
 		public ShellSection ShellSection { get; set; }
 		protected IShellContext ShellContext => _shellContext;
 		IShellSectionController SectionController => (IShellSectionController)ShellSection;
+		IMauiContext MauiContext => ShellContext.Shell.Handler.MauiContext;
+
+		public ShellSectionView(IShellContext shellContext)
+		{
+			_shellContext = shellContext;
+		}
+
 
 		public override AView OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
@@ -143,15 +143,15 @@ namespace Microsoft.Maui.Controls.Platform
 			var root = inflater.Inflate(Resource.Layout.rootlayout, null).JavaCast<CoordinatorLayout>();
 
 			_toolbar = root.FindViewById<Toolbar>(Resource.Id.main_toolbar);
-			_viewPager = root.FindViewById<FormsViewPager>(Resource.Id.main_viewpager);
+			_viewPager = root.FindViewById<MauiViewPager>(Resource.Id.main_viewpager);
 			_tablayout = root.FindViewById<TabLayout>(Resource.Id.main_tablayout);
 
 			_viewPager.EnableGesture = false;
 
 			_viewPager.AddOnPageChangeListener(this);
-			_viewPager.Id = AppCompat.Platform.GenerateViewId();
+			_viewPager.Id = AView.GenerateViewId();
 
-			_viewPager.Adapter = new ShellFragmentPagerAdapter(shellSection, ChildFragmentManager);
+			_viewPager.Adapter = new ShellFragmentPagerAdapter(shellSection, ChildFragmentManager, MauiContext);
 			_viewPager.OverScrollMode = OverScrollMode.Never;
 
 			_tablayout.SetupWithViewPager(_viewPager);
@@ -204,7 +204,7 @@ namespace Microsoft.Maui.Controls.Platform
 				var tab = _tablayout.GetTabAt(i);
 
 				if (tab.View != null)
-					FastRenderers.AutomationPropertiesProvider.AccessibilitySettingsChanged(tab.View, items[i]);
+					AutomationPropertiesProvider.AccessibilitySettingsChanged(tab.View, items[i]);
 			}
 		}
 

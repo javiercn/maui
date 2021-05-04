@@ -22,7 +22,14 @@ namespace Microsoft.Maui
 
 		public static void UpdateTextColor(this TextView textView, ITextStyle textStyle, Graphics.Color defaultColor)
 		{
-			textView.SetTextColor(textStyle.TextColor?.ToNative() ?? defaultColor.ToNative());
+			textView.UpdateTextColor(textStyle.TextColor, defaultColor);
+		}
+
+		public static void UpdateTextColor(this TextView textView, Graphics.Color textColor, Graphics.Color defaultColor)
+		{
+			var color = textColor ?? defaultColor;
+			if (color != null)
+				textView.SetTextColor(color.ToNative());
 		}
 
 		public static void UpdateTextColor(this TextView textView, ITextStyle textStyle) =>

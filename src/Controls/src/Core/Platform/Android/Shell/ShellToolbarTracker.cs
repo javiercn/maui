@@ -13,6 +13,7 @@ using AndroidX.AppCompat.Graphics.Drawable;
 using AndroidX.AppCompat.Widget;
 using AndroidX.DrawerLayout.Widget;
 using Google.Android.Material.AppBar;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Graphics;
@@ -53,7 +54,7 @@ namespace Microsoft.Maui.Controls.Platform
 		Page _page;
 		SearchHandler _searchHandler;
 		IShellSearchView _searchView;
-		ContainerView _titleViewContainer;
+		ShellContainerView _titleViewContainer;
 		protected IShellContext ShellContext { get; private set; }
 		//assume the default
 		Color _tintColor = null;
@@ -63,6 +64,7 @@ namespace Microsoft.Maui.Controls.Platform
 		GenericGlobalLayoutListener _globalLayoutListener;
 		List<IMenuItem> _currentMenuItems = new List<IMenuItem>();
 		List<ToolbarItem> _currentToolbarItems = new List<ToolbarItem>();
+		protected IMauiContext MauiContext => ShellContext.Shell.Handler.MauiContext;
 
 		public ShellToolbarTracker(IShellContext shellContext, Toolbar toolbar, DrawerLayout drawerLayout)
 		{
@@ -335,7 +337,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 		protected virtual async void UpdateLeftBarButtonItem(Context context, Toolbar toolbar, DrawerLayout drawerLayout, Page page)
 		{
-			if (_drawerToggle == null && !context.IsDesignerContext())
+			if (_drawerToggle == null)
 			{
 				_drawerToggle = new ActionBarDrawerToggle(context.GetActivity(), drawerLayout, toolbar, R.String.Ok, R.String.Ok)
 				{
@@ -369,13 +371,13 @@ namespace Microsoft.Maui.Controls.Platform
 				if (fid?.IconBitmapSource == image)
 					customIcon = fid.IconBitmap;
 				else
-					customIcon = await context.GetFormsDrawableAsync(image);
+					customIcon = (await ShellImagePart.GetImageAsync(image, MauiContext))?.Value;
 
 				if (customIcon != null)
 				{
 					if (fid == null)
 					{
-						fid = new FlyoutIconDrawerDrawable(context, tintColor, customIcon, text);
+						fid = new FlyoutIconDrawerDrawable(MauiContext, tintColor, customIcon, text);
 					}
 					else
 					{
@@ -391,7 +393,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 			if (!string.IsNullOrWhiteSpace(text) && icon == null)
 			{
-				icon = new FlyoutIconDrawerDrawable(context, tintColor, null, text);
+				icon = new FlyoutIconDrawerDrawable(MauiContext, tintColor, null, text);
 			}
 
 			if (icon == null && (_flyoutBehavior == FlyoutBehavior.Flyout || CanNavigateBack))
@@ -471,8 +473,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 		protected virtual void UpdateMenuItemIcon(Context context, IMenuItem menuItem, ToolbarItem toolBarItem)
 		{
-			ShellContext.ApplyDrawableAsync(toolBarItem, ToolbarItem.IconImageSourceProperty, baseDrawable =>
+			ShellImagePart.LoadImage(toolBarItem.IconImageSource, MauiContext, finished =>
 			{
+				var baseDrawable = finished.Value;
 				if (baseDrawable != null)
 				{
 					using (var constant = baseDrawable.GetConstantState())
@@ -528,7 +531,7 @@ namespace Microsoft.Maui.Controls.Platform
 			}
 			else if (_titleViewContainer == null)
 			{
-				_titleViewContainer = new ContainerView(context, titleView);
+				_titleViewContainer = new ShellContainerView(context, titleView, MauiContext);
 				_titleViewContainer.MatchHeight = _titleViewContainer.MatchWidth = true;
 				_titleViewContainer.LayoutParameters = new Toolbar.LayoutParams(LP.MatchParent, LP.MatchParent)
 				{
@@ -551,7 +554,7 @@ namespace Microsoft.Maui.Controls.Platform
 			var menu = toolbar.Menu;
 			var sortedItems = page.ToolbarItems.OrderBy(x => x.Order);
 
-			toolbar.UpdateMenuItems(sortedItems, ShellContext.AndroidContext, TintColor, OnToolbarItemPropertyChanged, _currentMenuItems, _currentToolbarItems);
+			toolbar.UpdateMenuItems(sortedItems, MauiContext, TintColor, OnToolbarItemPropertyChanged, _currentMenuItems, _currentToolbarItems);
 
 			SearchHandler = Shell.GetSearchHandler(page);
 			if (SearchHandler != null && SearchHandler.SearchBoxVisibility != SearchBoxVisibility.Hidden)
@@ -613,7 +616,7 @@ namespace Microsoft.Maui.Controls.Platform
 		void OnToolbarItemPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			var sortedItems = Page.ToolbarItems.OrderBy(x => x.Order).ToList();
-			_toolbar.OnToolbarItemPropertyChanged(e, (ToolbarItem)sender, sortedItems, ShellContext.AndroidContext, TintColor, OnToolbarItemPropertyChanged, _currentMenuItems, _currentToolbarItems);
+			_toolbar.OnToolbarItemPropertyChanged(e, (ToolbarItem)sender, sortedItems, MauiContext, TintColor, OnToolbarItemPropertyChanged, _currentMenuItems, _currentToolbarItems);
 		}
 
 		void OnSearchViewAttachedToWindow(object sender, AView.ViewAttachedToWindowEventArgs e)
@@ -672,10 +675,11 @@ namespace Microsoft.Maui.Controls.Platform
 				}
 			}
 
-			public FlyoutIconDrawerDrawable(Context context, Color defaultColor, Drawable icon, string text) : base(context)
+			public FlyoutIconDrawerDrawable(IMauiContext context, Color defaultColor, Drawable icon, string text) : base(context.Context)
 			{
-				TintColor = defaultColor;
-				_defaultSize = Forms.GetFontSizeNormal(context);
+				var fontManager = context.Services.GetRequiredService<IFontManager>();
+				TintColor = defaultColor;				
+				_defaultSize = fontManager.GetScaledPixel(Font.OfSize("Roboto", NamedSize.Default));
 				IconBitmap = icon;
 				Text = text;
 			}

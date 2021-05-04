@@ -22,61 +22,6 @@ namespace Microsoft.Maui.Controls.Platform
 {
 	public class ShellView : IShellContext, IAppearanceObserver
 	{
-		#region IVisualElementRenderer
-
-		event EventHandler<VisualElementChangedEventArgs> IVisualElementRenderer.ElementChanged
-		{
-			add { _elementChanged += value; }
-			remove { _elementChanged -= value; }
-		}
-
-		event EventHandler<PropertyChangedEventArgs> IVisualElementRenderer.ElementPropertyChanged
-		{
-			add { _elementPropertyChanged += value; }
-			remove { _elementPropertyChanged -= value; }
-		}
-
-		VisualElement IVisualElementRenderer.Element => Element;
-
-		VisualElementTracker IVisualElementRenderer.Tracker => null;
-
-		AView IVisualElementRenderer.View => _flyoutRenderer.AndroidView;
-
-		// Used by Previewer
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		public ViewGroup ViewGroup => _flyoutRenderer.AndroidView as ViewGroup;
-
-		SizeRequest IVisualElementRenderer.GetDesiredSize(int widthConstraint, int heightConstraint)
-		{
-			return new SizeRequest(new Size(100, 100));
-		}
-
-		void IVisualElementRenderer.SetElement(VisualElement element)
-		{
-			if (Element != null)
-				throw new NotSupportedException("Reuse of the Shell Renderer is not supported");
-			Element = (Shell)element;
-			Element.SizeChanged += OnElementSizeChanged;
-			OnElementSet(Element);
-
-			Element.PropertyChanged += OnElementPropertyChanged;
-			_elementChanged?.Invoke(this, new VisualElementChangedEventArgs(null, Element));
-		}
-
-		void IVisualElementRenderer.SetLabelFor(int? id)
-		{
-		}
-
-		// Used by Previewer
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		public void UpdateLayout()
-		{
-			var width = (int)AndroidContext.ToPixels(Element.Width);
-			var height = (int)AndroidContext.ToPixels(Element.Height);
-			_flyoutRenderer.AndroidView.Layout(0, 0, width, height);
-		}
-
-		#endregion IVisualElementRenderer
 
 		#region IShellContext
 
@@ -85,7 +30,7 @@ namespace Microsoft.Maui.Controls.Platform
 		// This is very bad, FIXME.
 		// This assumes all flyouts will implement via DrawerLayout which is PROBABLY true but
 		// I dont want to back us into a corner this time.
-		DrawerLayout IShellContext.CurrentDrawerLayout => (DrawerLayout)_flyoutRenderer.AndroidView;
+		DrawerLayout IShellContext.CurrentDrawerLayout => (DrawerLayout)_flyoutView.AndroidView;
 
 		Shell IShellContext.Shell => Element;
 
@@ -94,19 +39,19 @@ namespace Microsoft.Maui.Controls.Platform
 			return CreateFragmentForPage(page);
 		}
 
-		IShellFlyoutContentRenderer IShellContext.CreateShellFlyoutContentRenderer()
+		IShellFlyoutContentView IShellContext.CreateShellFlyoutContentView()
 		{
-			return CreateShellFlyoutContentRenderer();
+			return CreateShellFlyoutContentView();
 		}
 
-		IShellItemRenderer IShellContext.CreateShellItemRenderer(ShellItem shellItem)
+		IShellItemView IShellContext.CreateShellItemView(ShellItem shellItem)
 		{
-			return CreateShellItemRenderer(shellItem);
+			return CreateShellItemView(shellItem);
 		}
 
-		IShellSectionRenderer IShellContext.CreateShellSectionRenderer(ShellSection shellSection)
+		IShellSectionView IShellContext.CreateShellSectionView(ShellSection shellSection)
 		{
-			return CreateShellSectionRenderer(shellSection);
+			return CreateShellSectionView(shellSection);
 		}
 
 		IShellToolbarTracker IShellContext.CreateTrackerForToolbar(Toolbar toolbar)
@@ -140,19 +85,21 @@ namespace Microsoft.Maui.Controls.Platform
 
 		#endregion IAppearanceObserver
 
+
+		// TODO MAKE THESE DARK MODE HAPPY
 		public static readonly Color DefaultBackgroundColor = Color.FromRgb(33, 150, 243);
 		public static readonly Color DefaultForegroundColor = Colors.White;
 		public static readonly Color DefaultTitleColor = Colors.White;
 		public static readonly Color DefaultUnselectedColor = Color.FromRgba(255, 255, 255, 180);
 
-		bool _disposed;
-		IShellFlyoutRenderer _flyoutRenderer;
+		//bool _disposed;
+		IShellFlyoutView _flyoutView;
 		FrameLayout _frameLayout;
 
-		event EventHandler<VisualElementChangedEventArgs> _elementChanged;
+		//event EventHandler<VisualElementChangedEventArgs> _elementChanged;
 		event EventHandler<PropertyChangedEventArgs> _elementPropertyChanged;
 
-		public ShellRenderer(Context context)
+		public ShellView(Context context)
 		{
 			AndroidContext = context;
 		}
@@ -168,25 +115,25 @@ namespace Microsoft.Maui.Controls.Platform
 			return new ShellContentFragment(this, page);
 		}
 
-		protected virtual IShellFlyoutContentRenderer CreateShellFlyoutContentRenderer()
+		protected virtual IShellFlyoutContentView CreateShellFlyoutContentView()
 		{
-			return new ShellFlyoutTemplatedContentRenderer(this);
-			//return new ShellFlyoutContentRenderer(this, AndroidContext);
+			return new ShellFlyoutTemplatedContentView(this);
+			//return new ShellFlyoutContentView(this, AndroidContext);
 		}
 
-		protected virtual IShellFlyoutRenderer CreateShellFlyoutRenderer()
+		protected virtual IShellFlyoutView CreateShellFlyoutView()
 		{
-			return new ShellFlyoutRenderer(this, AndroidContext);
+			return new ShellFlyoutView(this, AndroidContext);
 		}
 
-		protected virtual IShellItemRenderer CreateShellItemRenderer(ShellItem shellItem)
+		protected virtual IShellItemView CreateShellItemView(ShellItem shellItem)
 		{
-			return new ShellItemRenderer(this);
+			return new ShellItemView(this);
 		}
 
-		protected virtual IShellSectionRenderer CreateShellSectionRenderer(ShellSection shellSection)
+		protected virtual IShellSectionView CreateShellSectionView(ShellSection shellSection)
 		{
-			return new ShellSectionRenderer(this);
+			return new ShellSectionView(this);
 		}
 
 		protected virtual IShellToolbarTracker CreateTrackerForToolbar(Toolbar toolbar)
@@ -226,20 +173,20 @@ namespace Microsoft.Maui.Controls.Platform
 			Profile.FrameBegin();
 
 			Profile.FramePartition("Flyout");
-			_flyoutRenderer = CreateShellFlyoutRenderer();
+			_flyoutView = CreateShellFlyoutView();
 
 			Profile.FramePartition("Frame");
 			_frameLayout = new CustomFrameLayout(AndroidContext)
 			{
 				LayoutParameters = new LP(LP.MatchParent, LP.MatchParent),
-				Id = AppCompat.Platform.GenerateViewId(),
+				Id = AView.GenerateViewId(),
 			};
 
 			Profile.FramePartition("SetFitsSystemWindows");
 			_frameLayout.SetFitsSystemWindows(true);
 
 			Profile.FramePartition("AttachFlyout");
-			_flyoutRenderer.AttachFlyout(this, _frameLayout);
+			_flyoutView.AttachFlyout(this, _frameLayout);
 
 			Profile.FramePartition("AddAppearanceObserver");
 			((IShellController)shell).AddAppearanceObserver(this, shell);
@@ -252,21 +199,17 @@ namespace Microsoft.Maui.Controls.Platform
 			Profile.FrameEnd();
 		}
 
-		IShellItemRenderer _currentRenderer;
+		IShellItemView _currentView;
 
 		protected virtual void SwitchFragment(FragmentManager manager, AView targetView, ShellItem newItem, bool animate = true)
 		{
 			Profile.FrameBegin();
 
-			Profile.FramePartition("IsDesignerContext");
-			if (AndroidContext.IsDesignerContext())
-				return;
-
-			Profile.FramePartition("CreateShellItemRenderer");
-			var previousRenderer = _currentRenderer;
-			_currentRenderer = CreateShellItemRenderer(newItem);
-			_currentRenderer.ShellItem = newItem;
-			var fragment = _currentRenderer.Fragment;
+			Profile.FramePartition("CreateShellItemView");
+			var previousView = _currentView;
+			_currentView = CreateShellItemView(newItem);
+			_currentView.ShellItem = newItem;
+			var fragment = _currentView.Fragment;
 
 			Profile.FramePartition("Transaction");
 			FragmentTransaction transaction = manager.BeginTransactionEx();
@@ -280,14 +223,14 @@ namespace Microsoft.Maui.Controls.Platform
 			Profile.FramePartition("OnDestroyed");
 			void OnDestroyed(object sender, EventArgs args)
 			{
-				previousRenderer.Destroyed -= OnDestroyed;
+				previousView.Destroyed -= OnDestroyed;
 
-				previousRenderer.Dispose();
-				previousRenderer = null;
+				previousView.Dispose();
+				previousView = null;
 			}
 
-			if (previousRenderer != null)
-				previousRenderer.Destroyed += OnDestroyed;
+			if (previousView != null)
+				previousView.Destroyed += OnDestroyed;
 
 			Profile.FrameEnd();
 		}
@@ -301,13 +244,18 @@ namespace Microsoft.Maui.Controls.Platform
 			int height = (int)AndroidContext.ToPixels(Element.Height);
 
 			Profile.FramePartition("Measure");
-			_flyoutRenderer.AndroidView.Measure(MeasureSpecFactory.MakeMeasureSpec(width, MeasureSpecMode.Exactly),
-				MeasureSpecFactory.MakeMeasureSpec(height, MeasureSpecMode.Exactly));
+			_flyoutView.AndroidView.Measure(MakeMeasureSpec(width, MeasureSpecMode.Exactly),
+				MakeMeasureSpec(height, MeasureSpecMode.Exactly));
 
 			Profile.FramePartition("Layout");
-			_flyoutRenderer.AndroidView.Layout(0, 0, width, height);
+			_flyoutView.AndroidView.Layout(0, 0, width, height);
 
 			Profile.FrameEnd();
+		}
+
+		int MakeMeasureSpec(int size, MeasureSpecMode mode)
+		{
+			return size + (int)mode;
 		}
 
 		void UpdateStatusBarColor(ShellAppearance appearance)
@@ -404,48 +352,5 @@ namespace Microsoft.Maui.Controls.Platform
 			}
 		}
 
-		#region IDisposable
-
-		void IDisposable.Dispose()
-		{
-			Dispose(true);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (_disposed)
-				return;
-
-			_disposed = true;
-
-			if (disposing)
-			{
-				if (_currentRenderer != null && _currentRenderer.Fragment.IsAlive())
-				{
-					FragmentTransaction transaction = FragmentManager.BeginTransactionEx();
-					transaction.RemoveEx(_currentRenderer.Fragment);
-					transaction.CommitAllowingStateLossEx();
-					FragmentManager.ExecutePendingTransactionsEx();
-				}
-
-				Element.PropertyChanged -= OnElementPropertyChanged;
-				Element.SizeChanged -= OnElementSizeChanged;
-				((IShellController)Element).RemoveAppearanceObserver(this);
-
-				// This cast is necessary because IShellFlyoutRenderer doesn't implement IDisposable
-				(_flyoutRenderer as IDisposable)?.Dispose();
-
-				_currentRenderer.Dispose();
-				_currentRenderer = null;
-			}
-
-			Element = null;
-			// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-			// TODO: set large fields to null.
-
-			_disposed = true;
-		}
-
-		#endregion IDisposable
 	}
 }

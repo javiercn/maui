@@ -20,6 +20,7 @@ namespace Microsoft.Maui.Controls.Platform
 		IReadOnlyList<object> _emptyList = new List<object>();
 		IReadOnlyList<object> ListProxy => SearchController.ListProxy ?? _emptyList;
 		bool _disposed;
+		protected IMauiContext MauiContext => _shellContext.Shell.Handler.MauiContext;
 
 		public ShellSearchViewAdapter(SearchHandler searchHandler, IShellContext shellContext)
 		{
@@ -91,10 +92,10 @@ namespace Microsoft.Maui.Controls.Platform
 		{
 			var item = ListProxy[position];
 
-			ContainerView result = null;
+			ShellContainerView result = null;
 			if (convertView != null)
 			{
-				result = convertView as ContainerView;
+				result = convertView as ShellContainerView;
 				result.View.BindingContext = item;
 			}
 			else
@@ -103,7 +104,7 @@ namespace Microsoft.Maui.Controls.Platform
 				var view = (View)template.CreateContent(item, _shellContext.Shell);
 				view.BindingContext = item;
 
-				result = new ContainerView(parent.Context, view);
+				result = new ShellContainerView(parent.Context, view, MauiContext);
 				result.MatchWidth = true;
 				result.MeasureHeight = true;
 			}

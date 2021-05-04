@@ -17,7 +17,7 @@ namespace Microsoft.Maui.Controls.Platform
 		Action<PageContainer> _onCreateCallback;
 		PageContainer _pageContainer;
 		IViewHandler _viewhandler;
-		bool _isVisible = false;
+		//bool _isVisible = false;
 		AView NativeView => _viewhandler?.NativeView as AView;
 
 		public FragmentContainer(IMauiContext mauiContext)

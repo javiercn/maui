@@ -10,8 +10,9 @@ using Microsoft.Maui.Graphics;
 using ATextView = global::Android.Widget.TextView;
 using AToolbar = AndroidX.AppCompat.Widget.Toolbar;
 using Color = Microsoft.Maui.Graphics.Color;
+using AView = global::Android.Views.View;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	internal static class ToolbarExtensions
 	{
@@ -27,7 +28,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		public static void UpdateMenuItems(this AToolbar toolbar,
 			IEnumerable<ToolbarItem> sortedToolbarItems,
-			Context context,
+			IMauiContext mauiContext,
 			Color tintColor,
 			PropertyChangedEventHandler toolbarItemChanged,
 			List<IMenuItem> menuItemsCreated,
@@ -37,6 +38,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			if (sortedToolbarItems == null || menuItemsCreated == null)
 				return;
 
+			var context = mauiContext.Context;
 			var menu = toolbar.Menu;
 			menu.Clear();
 
@@ -51,20 +53,21 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 			foreach (var item in sortedToolbarItems)
 			{
-				UpdateMenuItem(toolbar, item, null, context, tintColor, toolbarItemChanged, menuItemsCreated, toolbarItemsCreated, updateMenuItemIcon);
+				UpdateMenuItem(toolbar, item, null, mauiContext, tintColor, toolbarItemChanged, menuItemsCreated, toolbarItemsCreated, updateMenuItemIcon);
 			}
 		}
 
 		internal static void UpdateMenuItem(AToolbar toolbar,
 			ToolbarItem item,
 			int? menuItemIndex,
-			Context context,
+			IMauiContext mauiContext,
 			Color tintColor,
 			PropertyChangedEventHandler toolbarItemChanged,
 			List<IMenuItem> menuItemsCreated,
 			List<ToolbarItem> toolbarItemsCreated,
 			Action<Context, IMenuItem, ToolbarItem> updateMenuItemIcon = null)
 		{
+			var context = mauiContext.Context;
 			IMenu menu = toolbar.Menu;
 			item.PropertyChanged -= toolbarItemChanged;
 			item.PropertyChanged += toolbarItemChanged;
@@ -77,7 +80,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			{
 				if (item.Order != ToolbarItemOrder.Secondary && tintColor != null && tintColor != null)
 				{
-					var color = item.IsEnabled ? tintColor.ToAndroid() : tintColor.MultiplyAlpha(0.302f).ToAndroid();
+					var color = item.IsEnabled ? tintColor.ToNative() : tintColor.MultiplyAlpha(0.302f).ToNative();
 					SpannableString titleTinted = new SpannableString(item.Text);
 					titleTinted.SetSpan(new ForegroundColorSpan(color), 0, titleTinted.Length(), 0);
 					newTitle = titleTinted;
@@ -94,7 +97,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 			if (menuItemIndex == null)
 			{
-				menuitem = menu.Add(0, AppCompat.Platform.GenerateViewId(), 0, newTitle);
+				menuitem = menu.Add(0, AView.GenerateViewId(), 0, newTitle);
 				menuItemsCreated?.Add(menuitem);
 				toolbarItemsCreated?.Add(item);
 			}
@@ -117,30 +120,31 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			if (updateMenuItemIcon != null)
 				updateMenuItemIcon(context, menuitem, item);
 			else
-				UpdateMenuItemIcon(context, menuitem, item, tintColor);
+				UpdateMenuItemIcon(mauiContext, menuitem, item, tintColor);
 
 			if (item.Order != ToolbarItemOrder.Secondary)
 				menuitem.SetShowAsAction(ShowAsAction.Always);
 
 			menuitem.SetOnMenuItemClickListener(new GenericMenuClickListener(((IMenuItemController)item).Activate));
 
-			if (item.Order != ToolbarItemOrder.Secondary && !Forms.IsOreoOrNewer && (tintColor != null && tintColor != null))
+			if (item.Order != ToolbarItemOrder.Secondary && !NativeVersion.IsAtLeast(26) && (tintColor != null && tintColor != null))
 			{
 				var view = toolbar.FindViewById(menuitem.ItemId);
 				if (view is ATextView textView)
 				{
 					if (item.IsEnabled)
-						textView.SetTextColor(tintColor.ToAndroid());
+						textView.SetTextColor(tintColor.ToNative());
 					else
-						textView.SetTextColor(tintColor.MultiplyAlpha(0.302f).ToAndroid());
+						textView.SetTextColor(tintColor.MultiplyAlpha(0.302f).ToNative());
 				}
 			}
 		}
 
-		internal static void UpdateMenuItemIcon(Context context, IMenuItem menuItem, ToolbarItem toolBarItem, Color tintColor)
+		internal static void UpdateMenuItemIcon(IMauiContext mauiContext, IMenuItem menuItem, ToolbarItem toolBarItem, Color tintColor)
 		{
-			_ = context.ApplyDrawableAsync(toolBarItem, MenuItem.IconImageSourceProperty, baseDrawable =>
+			ShellImagePart.LoadImage(toolBarItem, mauiContext, result =>
 			{
+				var baseDrawable = result.Value;
 				if (menuItem == null || !menuItem.IsAlive())
 				{
 					return;
@@ -153,7 +157,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 					using (var iconDrawable = newDrawable.Mutate())
 					{
 						if (tintColor != null)
-							iconDrawable.SetColorFilter(tintColor.ToAndroid(Colors.White), FilterMode.SrcAtop);
+							iconDrawable.SetColorFilter(tintColor.ToNative(Colors.White), FilterMode.SrcAtop);
 
 						if (!menuItem.IsEnabled)
 						{
@@ -171,7 +175,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 			PropertyChangedEventArgs e,
 			ToolbarItem toolbarItem,
 			ICollection<ToolbarItem> toolbarItems,
-			Context context,
+			IMauiContext mauiContext,
 			Color tintColor,
 			PropertyChangedEventHandler toolbarItemChanged,
 			List<IMenuItem> currentMenuItems,
@@ -183,7 +187,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 			if (!e.IsOneOf(MenuItem.TextProperty, MenuItem.IconImageSourceProperty, MenuItem.IsEnabledProperty))
 				return;
-
+			var context = mauiContext.Context;
 			int index = 0;
 
 			foreach (var item in toolbarItems)
@@ -200,9 +204,9 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 				return;
 
 			if (currentMenuItems[index].IsAlive())
-				UpdateMenuItem(toolbar, toolbarItem, index, context, tintColor, toolbarItemChanged, currentMenuItems, currentToolbarItems, updateMenuItemIcon);
+				UpdateMenuItem(toolbar, toolbarItem, index, mauiContext, tintColor, toolbarItemChanged, currentMenuItems, currentToolbarItems, updateMenuItemIcon);
 			else
-				UpdateMenuItems(toolbar, toolbarItems, context, tintColor, toolbarItemChanged, currentMenuItems, currentToolbarItems, updateMenuItemIcon);
+				UpdateMenuItems(toolbar, toolbarItems, mauiContext, tintColor, toolbarItemChanged, currentMenuItems, currentToolbarItems, updateMenuItemIcon);
 		}
 	}
 }

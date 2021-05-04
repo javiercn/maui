@@ -3,10 +3,12 @@ using System.ComponentModel;
 using Android.Views;
 using Android.Widget;
 using AView = Android.Views.View;
+using AMenuItemCompat = AndroidX.Core.View.MenuItemCompat;
+using AToolbar = AndroidX.AppCompat.Widget.Toolbar;
 
 namespace Microsoft.Maui.Controls.Platform
 {
-	internal class AutomationPropertiesProvider : IDisposable
+	internal static class AutomationPropertiesProvider
 	{
 		static readonly string s_defaultDrawerId = "drawer";
 		static readonly string s_defaultDrawerIdOpenSuffix = "_open";
@@ -30,6 +32,62 @@ namespace Microsoft.Maui.Controls.Platform
 			resourceIdClose = context.Resources.GetIdentifier($"{automationIdParent}{s_defaultDrawerIdCloseSuffix}", "string", context.ApplicationInfo.PackageName);
 		}
 
+
+		public static void SetTitleOrContentDescription(this IMenuItem Control, ToolbarItem Element)
+		{
+			SetTitleOrContentDescription(Control, (MenuItem)Element);
+		}
+
+		public static void SetTitleOrContentDescription(this IMenuItem Control, MenuItem Element)
+		{
+			if (Element == null)
+				return;
+
+			var elemValue = ConcatenateNameAndHint(Element);
+
+			if (string.IsNullOrWhiteSpace(elemValue))
+				elemValue = Element.AutomationId;
+			else if (!String.IsNullOrEmpty(Element.Text))
+				elemValue = String.Join(". ", Element.Text, elemValue);
+
+			if (!string.IsNullOrWhiteSpace(elemValue))
+				AMenuItemCompat.SetContentDescription(Control, elemValue);
+
+		}
+
+
+		public static string SetNavigationContentDescription(this AToolbar Control, Element Element, string _defaultNavigationContentDescription = null)
+		{
+			if (Element == null)
+				return _defaultNavigationContentDescription;
+
+			if (_defaultNavigationContentDescription == null)
+				_defaultNavigationContentDescription = Control.NavigationContentDescription;
+
+			var elemValue = ConcatenateNameAndHint(Element);
+
+			if (!string.IsNullOrWhiteSpace(elemValue))
+				Control.NavigationContentDescription = elemValue;
+			else
+				Control.NavigationContentDescription = _defaultNavigationContentDescription;
+
+			return _defaultNavigationContentDescription;
+		}
+
+		static string ConcatenateNameAndHint(Element Element)
+		{
+			string separator;
+
+			var name = (string)Element.GetValue(AutomationProperties.NameProperty);
+			var hint = (string)Element.GetValue(AutomationProperties.HelpTextProperty);
+
+			if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(hint))
+				separator = "";
+			else
+				separator = ". ";
+
+			return string.Join(separator, name, hint);
+		}
 
 		internal static void SetAutomationId(AView control, Element element, string value = null)
 		{
@@ -106,6 +164,8 @@ namespace Microsoft.Maui.Controls.Platform
 			control.ImportantForAccessibility = !isInAccessibleTree.HasValue ? (ImportantForAccessibility)defaultImportantForAccessibility : (bool)isInAccessibleTree ? ImportantForAccessibility.Yes : ImportantForAccessibility.No;
 		}
 
+		// TODO MAUI
+		// THIS probably isn't how we're going to set LabeledBy insied Maui
 		internal static void SetLabeledBy(AView control, Element element)
 		{
 			if (element == null || control == null)
@@ -117,10 +177,12 @@ namespace Microsoft.Maui.Controls.Platform
 			{
 				var id = control.Id;
 				if (id == AView.NoId)
-					id = control.Id = AppCompat.Platform.GenerateViewId();
+					id = control.Id = AView.GenerateViewId();
 
-				var renderer = elemValue?.GetRenderer();
-				renderer?.SetLabelFor(id);
+				// TODO MAUI
+				// THIS probably isn't how we're going to set LabeledBy insied Maui
+				//var renderer = elemValue?.GetRenderer();
+				//renderer?.SetLabelFor(id);
 			}
 		}
 
@@ -155,63 +217,6 @@ namespace Microsoft.Maui.Controls.Platform
 
 			return true;
 		}
-
-		string _defaultContentDescription;
-		bool? _defaultFocusable;
-		ImportantForAccessibility? _defaultImportantForAccessibility;
-		string _defaultHint;
-		bool _disposed;
-
-		IVisualElementRenderer _renderer;
-
-		public AutomationPropertiesProvider(IVisualElementRenderer renderer)
-		{
-			_renderer = renderer;
-			_renderer.ElementPropertyChanged += OnElementPropertyChanged;
-			_renderer.ElementChanged += OnElementChanged;
-		}
-
-		AView Control => _renderer?.View;
-
-		VisualElement Element => _renderer?.Element;
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if (_disposed)
-			{
-				return;
-			}
-
-			_disposed = true;
-
-			if (Element != null)
-			{
-				Element.PropertyChanged -= OnElementPropertyChanged;
-			}
-
-			if (_renderer != null)
-			{
-				_renderer.ElementChanged -= OnElementChanged;
-				_renderer.ElementPropertyChanged -= OnElementPropertyChanged;
-
-				_renderer = null;
-			}
-		}
-
-		void SetContentDescription()
-			=> SetContentDescription(Control, Element, _defaultContentDescription, _defaultHint);
-
-		void SetFocusable()
-			=> SetFocusable(Control, Element, ref _defaultFocusable, ref _defaultImportantForAccessibility);
-
-		void SetLabeledBy()
-			=> SetLabeledBy(Control, Element);
 
 		internal static void AccessibilitySettingsChanged(AView control, Element element, string _defaultHint, string _defaultContentDescription, ref bool? _defaultFocusable, ref ImportantForAccessibility? _defaultImportantForAccessibility)
 		{
@@ -259,52 +264,6 @@ namespace Microsoft.Maui.Controls.Platform
 			if (control is TextView textView && defaultHint == null)
 			{
 				defaultHint = textView.Hint;
-			}
-		}
-
-		bool _defaultsSet;
-		void SetupDefaults()
-		{
-			if (_defaultsSet || Control == null)
-				return;
-
-			_defaultsSet = true;
-			SetupDefaults(Control, ref _defaultHint, ref _defaultContentDescription);
-		}
-
-		void OnElementChanged(object sender, VisualElementChangedEventArgs e)
-		{
-			if (e.OldElement != null)
-			{
-				e.OldElement.PropertyChanged -= OnElementPropertyChanged;
-			}
-
-			if (e.NewElement != null)
-			{
-				e.NewElement.PropertyChanged += OnElementPropertyChanged;
-			}
-
-			SetupDefaults();
-			AccessibilitySettingsChanged(Control, Element, _defaultHint, _defaultContentDescription, ref _defaultFocusable, ref _defaultImportantForAccessibility);
-		}
-
-		void OnElementPropertyChanged(object sender, PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == AutomationProperties.HelpTextProperty.PropertyName)
-			{
-				SetContentDescription();
-			}
-			else if (e.PropertyName == AutomationProperties.NameProperty.PropertyName)
-			{
-				SetContentDescription();
-			}
-			else if (e.PropertyName == AutomationProperties.IsInAccessibleTreeProperty.PropertyName)
-			{
-				SetFocusable();
-			}
-			else if (e.PropertyName == AutomationProperties.LabeledByProperty.PropertyName)
-			{
-				SetLabeledBy();
 			}
 		}
 	}

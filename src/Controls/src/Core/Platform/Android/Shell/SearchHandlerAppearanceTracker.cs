@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Android.App;
 using Android.Content;
+using Android.Content.Res;
 using Android.Graphics;
 using Android.OS;
 using Android.Runtime;
@@ -11,33 +12,39 @@ using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.Widget;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Internals;
+using Microsoft.Maui.Controls.Platform;
 using AImageButton = Android.Widget.ImageButton;
 using AView = Android.Views.View;
 using Color = Microsoft.Maui.Graphics.Color;
 using Size = Microsoft.Maui.Graphics.Size;
 
-namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
+namespace Microsoft.Maui.Controls.Platform
 {
 	public class SearchHandlerAppearanceTracker : IDisposable
 	{
 		SearchHandler _searchHandler;
 		bool _disposed;
 		AView _control;
-		EditText _editText;
+		AppCompatEditText _editText;
 		InputTypes _inputType;
-		TextColorSwitcher _textColorSwitcher;
-		TextColorSwitcher _hintColorSwitcher;
+		IShellContext _shellContext;
+		IMauiContext MauiContext => _shellContext.Shell.Handler.MauiContext;
+		ColorStateList DefaultTextColors { get; set; }
+		ColorStateList DefaultPlaceholderTextColors { get; set; }
 
-		public SearchHandlerAppearanceTracker(IShellSearchView searchView)
+		public SearchHandlerAppearanceTracker(IShellSearchView searchView, IShellContext shellContext)
 		{
+			_shellContext = shellContext;
 			_searchHandler = searchView.SearchHandler;
 			_control = searchView.View;
 			_searchHandler.PropertyChanged += SearchHandlerPropertyChanged;
 			_searchHandler.FocusChangeRequested += SearchHandlerFocusChangeRequested;
-			_editText = (_control as ViewGroup).GetChildrenOfType<EditText>().FirstOrDefault();
-			_textColorSwitcher = new TextColorSwitcher(_editText.TextColors, false);
-			_hintColorSwitcher = new TextColorSwitcher(_editText.HintTextColors, false);
+			_editText = (_control as ViewGroup).GetChildrenOfType<AppCompatEditText>().FirstOrDefault();
+			DefaultTextColors = _editText.TextColors;
+			DefaultPlaceholderTextColors = _editText.HintTextColors;
 			UpdateSearchBarColors();
 			UpdateFont();
 			UpdateHorizontalTextAlignment();
@@ -117,21 +124,23 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		void UpdateAutomationId()
 		{
-			FastRenderers
-				.AutomationPropertiesProvider
+			AutomationPropertiesProvider
 				.SetAutomationId(_editText, _searchHandler?.AutomationId);
 
 		}
 
 		void UpdateFont()
 		{
-			_editText.Typeface = _searchHandler.ToTypeface();
+			var fontManager = MauiContext.Services.GetRequiredService<IFontManager>();
+			var font = Font.OfSize(_searchHandler.FontFamily, _searchHandler.FontSize).WithAttributes(_searchHandler.FontAttributes);
+
+			_editText.Typeface = fontManager.GetTypeface(font);
 			_editText.SetTextSize(ComplexUnitType.Sp, (float)_searchHandler.FontSize);
 		}
 
 		void UpdatePlaceholderColor()
 		{
-			_hintColorSwitcher?.UpdateTextColor(_editText, _searchHandler.PlaceholderColor, _editText.SetHintTextColor);
+			_editText.UpdatePlaceholderColor(_searchHandler.PlaceholderColor, DefaultPlaceholderTextColors);			
 		}
 
 		void UpdateHorizontalTextAlignment()
@@ -152,7 +161,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 		void UpdateBackgroundColor()
 		{
 			var linearLayout = (_control as ViewGroup).GetChildrenOfType<LinearLayout>().FirstOrDefault();
-			linearLayout.SetBackgroundColor(_searchHandler.BackgroundColor.ToAndroid());
+			linearLayout.SetBackgroundColor(_searchHandler.BackgroundColor.ToNative());
 		}
 
 		void UpdateCancelButtonColor()
@@ -174,9 +183,8 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 
 		void UpdateTextColor()
 		{
-			var textColor = _searchHandler.TextColor;
-			_textColorSwitcher?.UpdateTextColor(_editText, textColor);
-			UpdateImageButtonIconColor("SearchIcon", textColor);
+			_editText.UpdateTextColor(_searchHandler.TextColor, DefaultTextColors);
+			UpdateImageButtonIconColor("SearchIcon", _searchHandler.TextColor);
 			UpdateClearPlaceholderIconColor();
 			//we need to set the cursor to
 		}
