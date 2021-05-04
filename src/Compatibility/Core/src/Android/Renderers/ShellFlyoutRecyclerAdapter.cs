@@ -343,7 +343,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 					if (_element != null)
 					{
 						_shell.AddLogicalChild(View);
-						FastRenderers.AutomationPropertiesProvider.AccessibilitySettingsChanged(_itemView, value);
+						AutomationPropertiesProvider.AccessibilitySettingsChanged(_itemView, value);
 						_element.SetValue(AppCompat.Platform.RendererProperty, _itemView);
 						_element.PropertyChanged += OnElementPropertyChanged;
 						UpdateVisualState();

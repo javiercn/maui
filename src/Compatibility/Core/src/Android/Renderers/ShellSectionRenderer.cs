@@ -11,6 +11,7 @@ using AndroidX.Fragment.App;
 using AndroidX.ViewPager.Widget;
 using Google.Android.Material.Tabs;
 using Microsoft.Maui.Controls.Compatibility.Platform.Android.AppCompat;
+using Microsoft.Maui.Controls.Platform;
 using AView = Android.Views.View;
 
 namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
@@ -204,7 +205,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android
 				var tab = _tablayout.GetTabAt(i);
 
 				if (tab.View != null)
-					FastRenderers.AutomationPropertiesProvider.AccessibilitySettingsChanged(tab.View, items[i]);
+					AutomationPropertiesProvider.AccessibilitySettingsChanged(tab.View, items[i]);
 			}
 		}
 

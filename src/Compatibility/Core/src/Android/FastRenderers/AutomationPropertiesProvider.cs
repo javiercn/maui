@@ -8,11 +8,6 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.Android.FastRenderers
 {
 	internal class AutomationPropertiesProvider : IDisposable
 	{
-		static readonly string s_defaultDrawerId = "drawer";
-		static readonly string s_defaultDrawerIdOpenSuffix = "_open";
-		static readonly string s_defaultDrawerIdCloseSuffix = "_close";
-
-
 		string _defaultContentDescription;
 		bool? _defaultFocusable;
 		ImportantForAccessibility? _defaultImportantForAccessibility;

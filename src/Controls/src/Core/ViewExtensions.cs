@@ -175,6 +175,9 @@ namespace Microsoft.Maui.Controls
 
 		internal static IMauiContext FindMauiContextOnParent(this Element element)
 		{
+			if (element is IView view && view?.Handler?.MauiContext != null)
+				return view.Handler.MauiContext;
+
 			var navPage = element
 				.GetParentsPath()
 				.OfType<IView>()
