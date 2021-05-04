@@ -142,7 +142,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 			var root = inflater.Inflate(Resource.Layout.rootlayout, null).JavaCast<CoordinatorLayout>();
 
-			_toolbar = root.FindViewById<Toolbar>(Resource.Id.main_toolbar);
+			_toolbar = root.FindViewById<Toolbar>(Resource.Id.maui_toolbar);
 			_viewPager = root.FindViewById<MauiViewPager>(Resource.Id.main_viewpager);
 			_tablayout = root.FindViewById<TabLayout>(Resource.Id.main_tablayout);
 

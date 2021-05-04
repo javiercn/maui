@@ -168,8 +168,17 @@ namespace Microsoft.Maui.Controls.Platform
 			Profile.FrameEnd();
 		}
 
+		internal void SetVirtualView(Shell shell)
+		{
+			Element = shell;
+			shell.SizeChanged += OnElementSizeChanged;
+			OnElementSet(shell);
+			shell.PropertyChanged += OnElementPropertyChanged;
+		}
+
 		protected virtual void OnElementSet(Shell shell)
 		{
+			Element = shell;
 			Profile.FrameBegin();
 
 			Profile.FramePartition("Flyout");

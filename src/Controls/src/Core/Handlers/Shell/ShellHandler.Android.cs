@@ -13,24 +13,17 @@ namespace Microsoft.Maui.Controls.Handlers
 		ShellView _shellView;
 		protected override ShellFlyoutView CreateNativeView()
 		{
-			_shellView = new ShellView(ContextWithValidation());
-			return (ShellFlyoutView)(_shellView as IShellContext).CurrentDrawerLayout;
+			var drawerLayout = (_shellView as IShellContext)?.CurrentDrawerLayout;
+			return (ShellFlyoutView)drawerLayout;
 		}
 
 
-		//#region IVisualElementRenderer
-
-		//event EventHandler<VisualElementChangedEventArgs> IVisualElementRenderer.ElementChanged
-		//{
-		//	add { _elementChanged += value; }
-		//	remove { _elementChanged -= value; }
-		//}
-
-		//event EventHandler<PropertyChangedEventArgs> IVisualElementRenderer.ElementPropertyChanged
-		//{
-		//	add { _elementPropertyChanged += value; }
-		//	remove { _elementPropertyChanged -= value; }
-		//}
+		public override void SetVirtualView(IView view)
+		{
+			_shellView = new ShellView(ContextWithValidation());
+			_shellView.SetVirtualView((Shell)view);
+			base.SetVirtualView(view);
+		}
 
 		//VisualElement IVisualElementRenderer.Element => Element;
 
