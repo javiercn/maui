@@ -64,4 +64,38 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="_BlazorDesktopReplaceBundle" AfterTargets="_AddGeneratedScopedCssFilesForReference" DependsOnTargets="_ComputeCssBundles">
+    <ItemGroup>
+      <StaticWebAsset Include="@(_AppBundleStaticWebAsset)">
+        <SourceType></SourceType>
+      </StaticWebAsset>
+      <Staticwebasset Remove="@(_ProjectBundleStaticWebAsset)" />
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <GetCurrentProjectStaticWebAssetsDependsOn>
+      $(GetCurrentProjectStaticWebAssets);
+      _BlazorDesktopReplaceBundle2;
+    </GetCurrentProjectStaticWebAssetsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="_BlazorDesktopReplaceBundle2" DependsOnTargets="_PrepareForBundling">
+    <ItemGroup>      
+      <_AppBundleStaticWebAsset Include="$(_ScopedCssOutputPath)" Condition="Exists('$(_ScopedCssOutputPath)')">
+        <SourceType></SourceType>
+        <SourceId>$(PackageId)</SourceId>
+        <ContentRoot>$(_ScopedCssBundleContentRoot)</ContentRoot>
+        <BasePath>$(_ScopedCssBundleBasePath)</BasePath>
+        <RelativePath>$(PackageId).styles.css</RelativePath>
+      </_AppBundleStaticWebAsset>
+
+      <StaticWebAsset Include="@(_AppBundleStaticWebAsset)">
+        <SourceType></SourceType>
+      </StaticWebAsset>
+
+    </ItemGroup>
+  </Target>
+
+
 </Project>

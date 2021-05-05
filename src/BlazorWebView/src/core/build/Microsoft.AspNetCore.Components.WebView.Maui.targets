@@ -1,0 +1,15 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="CopyStaticWebAssetsToOutputFolder" BeforeTargets="GetCopyToOutputDirectoryItems" DependsOnTargets="ResolveStaticWebAssetsInputs">
+    <ItemGroup>
+      <AllItemsFullPathWithTargetPath Include="%(StaticWebAsset.Identity)" Condition="'%(StaticWebAsset.SourceType)' != ''">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>$([System.String]::Copy('wwwroot\%(StaticWebAsset.BasePath)\%(StaticWebAsset.RelativePath)').Replace('/','\').Replace('\\\','\').Replace('\\','\'))</TargetPath>
+      </AllItemsFullPathWithTargetPath>
+      <AllItemsFullPathWithTargetPath Include="%(StaticWebAsset.Identity)" Condition="'%(StaticWebAsset.SourceType)' == ''">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>wwwroot\%(StaticWebAsset.RelativePath)</TargetPath>
+      </AllItemsFullPathWithTargetPath>
+    </ItemGroup>
+    <Message Text="Converting assets..." />
+  </Target>
+</Project>
