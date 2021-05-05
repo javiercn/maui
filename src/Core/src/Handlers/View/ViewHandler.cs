@@ -21,7 +21,7 @@ namespace Microsoft.Maui.Handlers
 		{
 			[nameof(IView.AutomationId)] = MapAutomationId,
 			[nameof(IView.BackgroundColor)] = MapBackgroundColor,
-			[nameof(IView.IsVisible)] = MapIsVisible,
+			[nameof(IView.Visibility)] = MapVisibility,
 			[nameof(IView.Width)] = MapWidth,
 			[nameof(IView.Height)] = MapHeight,
 			[nameof(IView.IsEnabled)] = MapIsEnabled,
@@ -109,9 +109,9 @@ namespace Microsoft.Maui.Handlers
 			((NativeView?)handler.NativeView)?.UpdateIsEnabled(view);
 		}
 
-		public static void MapIsVisible(IViewHandler handler, IView view)
+		public static void MapVisibility(IViewHandler handler, IView view)
 		{
-			((NativeView?)handler.NativeView)?.UpdateIsVisible(view);
+			((NativeView?)handler.NativeView)?.UpdateVisibility(view);
 		}
 
 		public static void MapBackgroundColor(IViewHandler handler, IView view)
