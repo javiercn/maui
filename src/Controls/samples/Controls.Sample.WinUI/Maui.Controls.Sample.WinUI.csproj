@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
   <!-- Normally this import would be automatic through the NuGet package. We do it manually for projects inside this solution. -->
-  <Import Project="..\..\..\BlazorWebView\src\core\build\net6.0-windows\Microsoft.AspNetCore.Components.WebView.Maui.props" Condition="$(TargetFramework.StartsWith('net6.0-windows'))" /> 
+  <Import Project="..\..\..\BlazorWebView\src\core\build\Microsoft.AspNetCore.Components.WebView.Maui.props" />
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -26,5 +26,5 @@
   </ItemGroup>
 
   <!-- Normally this import would be automatic through the NuGet package. We do it manually for projects inside this solution. -->
-  <Import Project="..\..\..\BlazorWebView\src\core\build\net6.0-windows\Microsoft.AspNetCore.Components.WebView.Maui.targets" Condition="$(TargetFramework.StartsWith('net6.0-windows'))" /> 
+  <Import Project="..\..\..\BlazorWebView\src\core\build\Microsoft.AspNetCore.Components.WebView.Maui.targets" />
 </Project>
