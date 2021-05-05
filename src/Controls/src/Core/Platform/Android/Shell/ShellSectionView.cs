@@ -5,6 +5,7 @@ using System.Linq;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
+using AndroidX.AppCompat.App;
 using AndroidX.AppCompat.Widget;
 using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Fragment.App;
@@ -143,6 +144,9 @@ namespace Microsoft.Maui.Controls.Platform
 			var root = inflater.Inflate(Resource.Layout.rootlayout, null).JavaCast<CoordinatorLayout>();
 
 			_toolbar = root.FindViewById<Toolbar>(Resource.Id.maui_toolbar);
+			if (Context.GetActivity() is AppCompatActivity aca)
+				aca.SetSupportActionBar(_toolbar);
+
 			_viewPager = root.FindViewById<MauiViewPager>(Resource.Id.main_viewpager);
 			_tablayout = root.FindViewById<TabLayout>(Resource.Id.main_tablayout);
 

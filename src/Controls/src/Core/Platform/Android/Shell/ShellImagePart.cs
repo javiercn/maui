@@ -12,10 +12,10 @@ namespace Microsoft.Maui.Controls.Platform
 {
 	class ShellImagePart : IImageSourcePart
 	{
-		public IImageSource Source 
-		{ 
-			get; 
-			set; 
+		public IImageSource Source
+		{
+			get;
+			set;
 		}
 
 		public IMauiContext MauiContext
@@ -35,6 +35,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public static Task<IImageSourceServiceResult<Drawable>> GetImageAsync(IImageSource imageSource, IMauiContext mauiContext)
 		{
+			if (imageSource == null)
+				return Task.FromResult<IImageSourceServiceResult<Drawable>>(new ImageSourceServiceResult(null));
+
 			var services = mauiContext.Services;
 			var provider = services.GetRequiredService<IImageSourceServiceProvider>();
 			var imageSourceService = provider.GetRequiredImageSourceService(imageSource);
