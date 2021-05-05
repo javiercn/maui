@@ -22,6 +22,7 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public FragmentContainer(IMauiContext mauiContext)
 		{
+			_mauiContext = mauiContext;
 		}
 
 		public FragmentContainer(Page page, IMauiContext mauiContext) : this(mauiContext)

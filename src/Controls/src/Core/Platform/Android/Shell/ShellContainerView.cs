@@ -14,8 +14,8 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public ShellContainerView(Context context, View view, IMauiContext mauiContext) : base(context)
 		{
+			_mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
 			View = view;
-			_mauiContext = mauiContext;
 		}
 
 		public bool MatchHeight { get; set; }

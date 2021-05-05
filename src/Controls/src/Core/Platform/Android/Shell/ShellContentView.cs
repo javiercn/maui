@@ -32,9 +32,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 		public ShellContentView(Context context, View view, IMauiContext mauiContext)
 		{
+			_mauiContext = mauiContext ?? throw new ArgumentNullException(nameof(mauiContext));
 			_context = new WeakReference<Context>(context);
 			View = view;
-			_mauiContext = mauiContext;
 		}
 
 		public View View
